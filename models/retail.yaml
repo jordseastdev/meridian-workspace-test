@@ -1,6 +1,6 @@
 dataModelId: retail
 name: Retail
-description: Curated semantic layer over the demo retail warehouse. Orders at line grain, joined to customers, products and stores. Edited on GitHub.
+description: Curated semantic layer over the demo retail warehouse. Orders at line grain, joined to customers, products and stores.
 folderId: models
 tags:
   - certified
