@@ -1,6 +1,5 @@
 dataModelId: retail
-name: Retail
-description: Curated semantic layer over the demo retail warehouse. Orders at line grain, joined to customers, products and stores. QA96 browser sync verified.
+description: QA96 invalid commit MUST NOT APPLY
 folderId: models
 tags:
   - certified
