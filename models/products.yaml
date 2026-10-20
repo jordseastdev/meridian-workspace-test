@@ -1,6 +1,6 @@
 dataModelId: products
 name: Products
-description: Semantic model over catalog.products (pg). Describe what one row represents.
+description: One row per product in the catalog, with category, brand and list price. Edited on GitHub.
 contents:
   schemaVersion: 1
   kind: data-model
