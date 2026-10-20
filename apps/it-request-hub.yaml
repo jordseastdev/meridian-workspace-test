@@ -1,0 +1,273 @@
+workbookId: it-request-hub
+name: IT Request Hub
+description: Phone-friendly IT request submission and approval app for the team.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: request_data
+      name: IT Requests
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: request_id
+          name: Request ID
+          type: text
+          default:
+            kind: id
+            prefix: IT-
+          required: true
+          readOnly: true
+        - id: requester
+          name: Requester
+          type: text
+          default:
+            kind: user
+          required: true
+          readOnly: true
+        - id: need
+          name: What you need
+          type: text
+          required: true
+        - id: category
+          name: Category
+          type: text
+          values:
+            - Hardware
+            - Software
+            - Access
+          required: true
+        - id: priority
+          name: Priority
+          type: text
+          values:
+            - Low
+            - Normal
+            - High
+            - Urgent
+          default:
+            kind: constant
+            value: Normal
+          required: true
+        - id: needed_by
+          name: Needed by
+          type: date
+          required: true
+        - id: estimated_cost
+          name: Estimated cost
+          type: number
+          min: 0
+        - id: details
+          name: Details
+          type: text
+          multiline: true
+        - id: status
+          name: Status
+          type: text
+          values:
+            - Open
+            - Approved
+            - Rejected
+          default:
+            kind: constant
+            value: Open
+          required: true
+        - id: decision_note
+          name: Decision note
+          type: text
+          multiline: true
+        - id: decided_by
+          name: Decided by
+          type: text
+          readOnly: true
+        - id: decided_at
+          name: Decided at
+          type: datetime
+          readOnly: true
+    - id: request_form
+      kind: form
+      title: Submit an IT request
+      tableElementId: request_data
+      fields:
+        - need
+        - category
+        - priority
+        - needed_by
+        - estimated_cost
+        - details
+      submitText: Submit request
+    - id: open_queue
+      name: Open requests — review and decide
+      kind: table
+      source:
+        kind: table
+        elementId: request_data
+      columns:
+        - id: request_id
+          name: Request ID
+        - id: requester
+          name: Requester
+        - id: need
+          name: What you need
+        - id: category
+          name: Category
+        - id: priority
+          name: Priority
+        - id: needed_by
+          name: Needed by
+        - id: estimated_cost
+          name: Estimated cost
+        - id: details
+          name: Details
+        - id: status
+          name: Status
+        - id: decision_note
+          name: Decision note
+      filters:
+        - id: open_only
+          kind: formula
+          formula: '[Status] = "Open"'
+      rowActions:
+        - id: approve
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: '[Status] = "Open"'
+          ask:
+            label: Decision note
+            placeholder: Optional note
+          effects:
+            - effect: update-rows
+              tableElementId: request_data
+              whichRows:
+                type: column-match
+                columnId: request_id
+                value:
+                  type: selection
+                  columnId: request_id
+              values:
+                status:
+                  type: constant
+                  value: Approved
+                decision_note:
+                  type: answer
+                decided_by:
+                  type: user
+                  field: email
+                decided_at:
+                  type: now
+        - id: reject
+          text: Reject
+          appearance: danger
+          icon: x
+          showWhen: '[Status] = "Open"'
+          ask:
+            label: Reason
+            placeholder: Add a reason
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: request_data
+              whichRows:
+                type: column-match
+                columnId: request_id
+                value:
+                  type: selection
+                  columnId: request_id
+              values:
+                status:
+                  type: constant
+                  value: Rejected
+                decision_note:
+                  type: answer
+                decided_by:
+                  type: user
+                  field: email
+                decided_at:
+                  type: now
+      display: cards
+      card:
+        title: need
+        subtitle: requester
+        status: priority
+        fields:
+          - category
+          - needed_by
+          - estimated_cost
+          - details
+    - id: all_requests
+      name: All requests
+      kind: table
+      source:
+        kind: table
+        elementId: request_data
+      columns:
+        - id: request_id
+          name: Request ID
+        - id: requester
+          name: Requester
+        - id: need
+          name: What you need
+        - id: category
+          name: Category
+        - id: priority
+          name: Priority
+        - id: needed_by
+          name: Needed by
+        - id: estimated_cost
+          name: Estimated cost
+        - id: details
+          name: Details
+        - id: status
+          name: Status
+        - id: decision_note
+          name: Decision note
+        - id: decided_by
+          name: Decided by
+        - id: decided_at
+          name: Decided at
+      sort:
+        - columnId: needed_by
+          direction: ascending
+      display: cards
+      card:
+        title: need
+        subtitle: requester
+        status: status
+        fields:
+          - category
+          - priority
+          - needed_by
+          - estimated_cost
+          - details
+          - decision_note
+  pages:
+    - id: requests
+      name: Requests
+      elements:
+        - request_form
+        - open_queue
+        - all_requests
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - request_data
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="requests">
+      <Element elementId="request_form" gridColumn="1 / 25" gridRow="1 / 9"/>
+      <Element elementId="open_queue" gridColumn="1 / 25" gridRow="9 / 21"/>
+      <Element elementId="all_requests" gridColumn="1 / 25" gridRow="21 / 33"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="request_data" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

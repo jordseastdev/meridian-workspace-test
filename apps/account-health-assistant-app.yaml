@@ -1,0 +1,276 @@
+workbookId: account-health-assistant-app
+name: Account Health
+description: Account health overview and account-level assistant.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts_base
+      name: Account health base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+        - id: adopted_rate
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+        - id: paid_rate
+          name: Paid Invoice Rate
+          formula: "[Paid Invoice Rate]"
+        - id: unpaid
+          name: Unpaid Invoice Count
+          formula: "[Unpaid Invoice Count]"
+        - id: mau
+          name: Total Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+    - id: f_signup
+      kind: control
+      controlId: signup_filter
+      controlType: date-range
+      label: Signup date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: signup_date
+    - id: f_region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: region
+    - id: f_status
+      kind: control
+      controlId: status_filter
+      controlType: list
+      label: Account status
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: status
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: assistant_drawer
+      text: Ask Account Health Assistant
+      appearance: filled
+      icon: sparkles
+    - id: kpi_accounts
+      name: Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Accounts
+          formula: "[Account Count]"
+      value:
+        columnId: value
+    - id: kpi_billed
+      name: Total billed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Total billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: value
+    - id: kpi_adoption
+      name: Adopted feature rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Adopted feature rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_paid
+      name: Paid invoice rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Paid invoice rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: health_industry
+      name: Accounts by industry
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: industry
+        sort:
+          by: accounts
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts
+      limit: 10
+    - id: health_plan
+      name: Accounts by current plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: plan
+        sort:
+          by: accounts
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts
+      limit: 10
+    - id: account_table
+      name: Account health details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: industry
+          name: Industry
+        - id: current_plan
+          name: Current Plan
+        - id: region
+          name: Region
+        - id: status
+          name: Status
+        - id: total_billed
+          name: Total Billed
+        - id: adopted_rate
+          name: Adopted Feature Rate
+        - id: unpaid
+          name: Unpaid Invoice Count
+        - id: mau
+          name: Total Monthly Active Users
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+    - id: assistant
+      kind: agent
+      agentId: account-health-assistant
+      placeholder: Ask about account health, adoption, billing, and risk.
+      height: 700
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - f_signup
+        - f_region
+        - f_status
+        - ask_button
+        - kpi_accounts
+        - kpi_billed
+        - kpi_adoption
+        - kpi_paid
+        - health_industry
+        - health_plan
+        - account_table
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="f_signup" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_region" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="f_status" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ask_button" gridColumn="19 / 23" gridRow="1 / 3"/>
+      <Element elementId="kpi_accounts" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_billed" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_adoption" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_paid" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="health_industry" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="health_plan" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="account_table" gridColumn="1 / 25" gridRow="16 / 28"/>
+      <Element elementId="accounts_base" gridColumn="1 / 25" gridRow="28 / 40"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="assistant_drawer">
+      <Element elementId="assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: assistant_drawer
+      kind: drawer
+      title: Account Health Assistant
+      size: large
+      elements:
+        - assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

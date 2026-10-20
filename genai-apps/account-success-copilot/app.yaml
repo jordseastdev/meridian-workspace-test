@@ -1,0 +1,30 @@
+genaiAppId: account-success-copilot
+name: Account Success Copilot
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: saas-account-assistant-data
+  source: |-
+    root = Stack([pageHeader, filterPanel, accountKpis, accountList, noteLimit], "column", "m")
+
+    $search = ""
+    $status = "All"
+    $region = "All"
+    $plan = "All"
+
+    accounts = Query("rows", {element: "accounts", search: $search, filters: ($status == "All" ? [] : [{column: "status", values: [$status]}]) + ($region == "All" ? [] : [{column: "region", values: [$region]}]) + ($plan == "All" ? [] : [{column: "current_plan", values: [$plan]}]), limit: 200}, {rows: [], total: 0})
+
+    pageHeader = Header("Account management", "Customer success view · prioritize churn, billing, adoption, and feature activity")
+
+    searchField = FormControl("Search accounts", Input("search", "Search account name or domain", "text", null, $search))
+    statusField = FormControl("Lifecycle status", Select("status", [SelectItem("All", "All statuses"), SelectItem("Active", "Active"), SelectItem("Churned", "Churned")], null, null, $status))
+    regionField = FormControl("Region", Select("region", [SelectItem("All", "All regions"), SelectItem("APAC", "APAC"), SelectItem("EMEA", "EMEA"), SelectItem("LATAM", "LATAM"), SelectItem("North America", "North America")], null, null, $region))
+    planField = FormControl("Current plan", Select("plan", [SelectItem("All", "All plans"), SelectItem("Starter", "Starter"), SelectItem("Growth", "Growth"), SelectItem("Business", "Business"), SelectItem("Enterprise", "Enterprise")], null, null, $plan))
+    filterPanel = Stack([searchField, statusField, regionField, planField], "column", "s")
+
+    accountKpis = Stack([Kpi("Matching accounts", accounts.total, "Up to 200 results shown")], "row", "m")
+
+    accountList = Stack(@Each(accounts.rows, "a", Card(a.account_name, a.domain, Badge(a.status, a.status == "Active" ? "good" : "bad"), [Field("Current plan · region", a.current_plan + " · " + a.region), Field("Owner · CSM", a.account_owner + " · " + (a.csm == null ? "Not assigned" : a.csm)), Field("Employees · starting seats", a.employee_count + " · " + a.starting_seats), Field("Feature adoption", a.adopted_feature_count + " of " + a.feature_record_count + " features · " + a.total_monthly_active_users + " monthly active users"), Field("Invoice health", a.paid_invoice_count + " paid · " + a.unpaid_invoice_count + " unpaid · " + a.invoice_count + " total"), Field("Billed total", a.total_billed), Field("Signup · conversion", a.signup_date + " · " + a.converted_date), Field("Churn", a.churned_date == null ? "Not churned" : a.churned_date + " · " + a.churn_reason), Field("Feature activity", a.first_feature_use_date + " to " + a.last_feature_use_date), Field("Invoices", "First: " + a.first_invoice_date + " · Last: " + a.last_invoice_date + " · Last paid: " + a.last_paid_date), Field("Account summary", a.status == "Churned" ? "Churned account. Review the recorded churn reason and consider whether a recovery conversation is appropriate." : a.unpaid_invoice_count > 0 ? "Billing risk: follow up on unpaid invoices; check adoption and recent feature activity before the next customer touchpoint." : a.adopted_feature_count < a.feature_record_count ? "Adoption opportunity: discuss the unadopted features and review the last feature-use date with the account." : "No billing or feature-adoption risk is evident in the supplied account data; continue routine success check-ins.")], null, null)), "column", "s")
+
+    noteLimit = TextContent("Account notes and follow-up status cannot be saved from this workbook: the supplied accounts element is read-only, and no writable notes or follow-up table is available. No account details beyond the supplied data are inferred.", "muted")
+  prompt: Build an account management screen for SaaS customer success. List accounts with useful filtering and searchable account details. Highlight lifecycle status, current plan, region, account owner and CSM, employee count and starting seats, feature adoption counts and monthly active users, invoice payment health, billed totals, and relevant signup/conversion/churn/feature/invoice dates. Help prioritize accounts at risk using churn status, unpaid invoices, weak feature adoption, and stale feature activity; provide concise actionable account summaries and allow users to save an account note and follow-up status tied to each account ID. Use only the supplied account-level data; don't invent missing details.

@@ -1,0 +1,1021 @@
+workbookId: retail-command-center-priya
+name: Retail Command Center
+description: Executive retail performance, customer value, product, fulfillment, returns, and support command center.
+folderId: retail
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: base_sales
+      name: Sales Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: month
+          name: Month
+          formula: DateTrunc("month", [Orders/Order Date])
+        - id: channel
+          name: Channel
+          formula: "[Orders/Channel]"
+        - id: status
+          name: Status
+          formula: "[Orders/Status]"
+        - id: region
+          name: Region
+          formula: "[Store/Region]"
+        - id: category
+          name: Category
+          formula: "[Product/Category]"
+        - id: product
+          name: Product
+          formula: "[Product/Product Name]"
+        - id: customer
+          name: Customer
+          formula: "[Customer/Customer Name]"
+        - id: segment
+          name: Segment
+          formula: "[Customer/Segment]"
+        - id: loyalty
+          name: Loyalty Tier
+          formula: "[Customer/Loyalty Tier]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: profit
+          name: Profit
+          formula: "[Orders/Profit]"
+          format:
+            kind: currency
+            decimals: 0
+    - id: pulse_date
+      name: Date range
+      kind: control
+      controlId: pulse_date
+      controlType: date-range
+      filters:
+        - source:
+            kind: table
+            elementId: base_sales
+          columnId: order_date
+    - id: pulse_region
+      name: Region
+      kind: control
+      controlId: pulse_region
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_sales
+          columnId: region
+    - id: pulse_channel
+      name: Channel
+      kind: control
+      controlId: pulse_channel
+      controlType: segmented
+      filters:
+        - source:
+            kind: table
+            elementId: base_sales
+          columnId: channel
+    - id: kpi_revenue
+      name: Revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: value
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: vs prior period
+      trend:
+        columnId: period
+    - id: kpi_profit
+      name: Profit
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: value
+          name: Profit
+          formula: Sum([Profit])
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: vs prior period
+      trend:
+        columnId: period
+    - id: kpi_margin
+      name: Gross Margin
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: value
+          name: Gross Margin
+          formula: SafeDivide(Sum([Profit]), Sum([Revenue]))
+          format:
+            kind: percent
+            decimals: 1
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: vs prior period
+      trend:
+        columnId: period
+    - id: kpi_orders
+      name: Orders
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: value
+          name: Orders
+          formula: CountDistinct([Order ID])
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: vs prior period
+      trend:
+        columnId: period
+    - id: kpi_returns
+      name: Return Rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: value
+          name: Return Rate
+          formula: SafeDivide(CountIf([Status] = "Returned"), Count())
+          format:
+            kind: percent
+            decimals: 1
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: vs prior period
+      trend:
+        columnId: period
+    - id: revenue_trend
+      name: Revenue & Profit Trend
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+        - id: profit
+          name: Profit
+          formula: Sum([Profit])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+          - profit
+      legend:
+        position: top
+    - id: channel_revenue
+      name: Revenue by Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: channel
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#22d3ee"
+      fill: gradient
+    - id: category_revenue
+      name: Revenue by Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: category
+          name: Category
+          formula: "[Category]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: category
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: scale
+        column: revenue
+        scheme: purples
+      fill: gradient
+      limit: 10
+    - id: region_revenue
+      name: Revenue by Region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: region
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#a78bfa"
+      fill: gradient
+    - id: growth_note
+      name: Filter context
+      kind: text
+      body: |-
+        ## Customer & Product Intelligence
+        Uses the date, region, and channel filters from **Executive Pulse**.
+    - id: segment_mix
+      name: Revenue Mix by Segment
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: segment
+          name: Segment
+          formula: "[Segment]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      color:
+        by: category
+        column: segment
+        scheme: vivid
+      value:
+        columnId: revenue
+      category:
+        columnId: segment
+      legend:
+        position: bottom
+    - id: loyalty_value
+      name: Revenue by Loyalty Tier
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: tier
+          name: Loyalty Tier
+          formula: "[Loyalty Tier]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: tier
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: scale
+        column: revenue
+        scheme: blues
+    - id: top_products
+      name: Top 10 Products
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: product
+          name: Product
+          formula: "[Product]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: product
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#f472b6"
+      fill: gradient
+      orientation: horizontal
+      limit: 10
+    - id: channel_aov
+      name: Average Order Value by Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: aov
+          name: Avg Order Value
+          formula: SafeDivide(Sum([Revenue]), CountDistinct([Order ID]))
+          format:
+            kind: currency
+            decimals: 2
+      xAxis:
+        columnId: channel
+        sort:
+          by: aov
+          direction: descending
+      yAxis:
+        columnIds:
+          - aov
+      color:
+        by: scale
+        column: aov
+        scheme: teals
+    - id: customer_leaderboard
+      name: Top Customers
+      kind: table
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: customer
+          name: Customer
+          formula: "[Customer]"
+        - id: segment
+          name: Segment
+          formula: "[Segment]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+        - id: orders
+          name: Orders
+          formula: CountDistinct([Order ID])
+        - id: aov
+          name: Avg Order Value
+          formula: SafeDivide(Sum([Revenue]), CountDistinct([Order ID]))
+          format:
+            kind: currency
+            decimals: 2
+      groupings:
+        - id: by_customer
+          groupBy:
+            - customer
+            - segment
+          calculations:
+            - revenue
+            - orders
+            - aov
+          sort:
+            - columnId: revenue
+              direction: descending
+      limit: 20
+    - id: base_shipments
+      name: Shipments Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: shipments
+      columns:
+        - id: ship_date
+          name: Ship Date
+          formula: "[Shipments/Ship Date]"
+        - id: month
+          name: Month
+          formula: DateTrunc("month", [Shipments/Ship Date])
+        - id: carrier
+          name: Carrier
+          formula: "[Shipments/Carrier]"
+        - id: on_time
+          name: On Time
+          formula: "[Shipments/On Time]"
+        - id: transit
+          name: Transit Days
+          formula: "[Shipments/Transit Days]"
+        - id: charged
+          name: Shipping Charged
+          formula: "[Shipments/Shipping Charged]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: cost
+          name: Shipping Cost
+          formula: "[Shipments/Shipping Cost]"
+          format:
+            kind: currency
+            decimals: 2
+    - id: base_returns
+      name: Returns Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: returns
+      columns:
+        - id: return_date
+          name: Return Date
+          formula: "[Returns/Return Date]"
+        - id: reason
+          name: Return Reason
+          formula: "[Returns/Return Reason]"
+        - id: refund
+          name: Refund Amount
+          formula: "[Returns/Refund Amount]"
+          format:
+            kind: currency
+            decimals: 2
+    - id: base_support
+      name: Support Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: support_tickets
+      columns:
+        - id: opened
+          name: Opened At
+          formula: "[Support Tickets/Opened At]"
+        - id: channel
+          name: Contact Channel
+          formula: "[Support Tickets/Contact Channel]"
+        - id: category
+          name: Ticket Category
+          formula: "[Support Tickets/Ticket Category]"
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Support Tickets/Ticket ID]"
+        - id: csat
+          name: CSAT Score
+          formula: "[Support Tickets/CSAT Score]"
+    - id: ops_date
+      name: Operations Date
+      kind: control
+      controlId: ops_date
+      controlType: date-range
+      filters:
+        - source:
+            kind: table
+            elementId: base_shipments
+          columnId: ship_date
+        - source:
+            kind: table
+            elementId: base_returns
+          columnId: return_date
+        - source:
+            kind: table
+            elementId: base_support
+          columnId: opened
+    - id: kpi_on_time
+      name: On-time Delivery
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_shipments
+      columns:
+        - id: value
+          name: On-time Rate
+          formula: SafeDivide(CountIf([On Time]), Count())
+          format:
+            kind: percent
+            decimals: 1
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      trend:
+        columnId: period
+    - id: kpi_transit
+      name: Avg Transit Days
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_shipments
+      columns:
+        - id: value
+          name: Avg Transit Days
+          formula: Avg([Transit Days])
+          format:
+            kind: number
+            decimals: 1
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      trend:
+        columnId: period
+    - id: kpi_subsidy
+      name: Shipping Subsidy
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_shipments
+      columns:
+        - id: value
+          name: Shipping Subsidy
+          formula: Sum([Shipping Cost]) - Sum([Shipping Charged])
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      trend:
+        columnId: period
+    - id: kpi_refunds
+      name: Refunds
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_returns
+      columns:
+        - id: value
+          name: Total Refunds
+          formula: Sum([Refund Amount])
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_tickets
+      name: Support Tickets
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_support
+      columns:
+        - id: value
+          name: Ticket Count
+          formula: CountDistinct([Ticket ID])
+      value:
+        columnId: value
+    - id: on_time_trend
+      name: On-time Delivery Trend
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_shipments
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: rate
+          name: On-time Rate
+          formula: SafeDivide(CountIf([On Time]), Count())
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - rate
+      color:
+        by: single
+        value: "#34d399"
+      fill: gradient
+    - id: carrier_performance
+      name: On-time Rate by Carrier
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_shipments
+      columns:
+        - id: carrier
+          name: Carrier
+          formula: "[Carrier]"
+        - id: rate
+          name: On-time Rate
+          formula: SafeDivide(CountIf([On Time]), Count())
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: carrier
+        sort:
+          by: rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - rate
+      color:
+        by: scale
+        column: rate
+        scheme: red-green
+    - id: return_reasons
+      name: Refunds by Return Reason
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: base_returns
+      columns:
+        - id: reason
+          name: Return Reason
+          formula: "[Return Reason]"
+        - id: refunds
+          name: Refunds
+          formula: Sum([Refund Amount])
+          format:
+            kind: currency
+            decimals: 0
+      color:
+        by: category
+        column: reason
+        scheme: sunset
+      value:
+        columnId: refunds
+      category:
+        columnId: reason
+      legend:
+        position: bottom
+    - id: ticket_categories
+      name: Tickets by Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_support
+      columns:
+        - id: category
+          name: Ticket Category
+          formula: "[Ticket Category]"
+        - id: tickets
+          name: Tickets
+          formula: CountDistinct([Ticket ID])
+      xAxis:
+        columnId: category
+        sort:
+          by: tickets
+          direction: descending
+      yAxis:
+        columnIds:
+          - tickets
+      color:
+        by: single
+        value: "#fb7185"
+      limit: 10
+    - id: support_channel_csat
+      name: CSAT by Contact Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_support
+      columns:
+        - id: channel
+          name: Contact Channel
+          formula: "[Contact Channel]"
+        - id: csat
+          name: Avg CSAT
+          formula: Avg([CSAT Score])
+          format:
+            kind: number
+            decimals: 2
+      xAxis:
+        columnId: channel
+        sort:
+          by: csat
+          direction: descending
+      yAxis:
+        columnIds:
+          - csat
+      color:
+        by: scale
+        column: csat
+        scheme: blues
+    - id: base_campaigns
+      name: Campaigns Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: campaigns
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Campaigns/Channel]"
+        - id: spend
+          name: Spend
+          formula: "[Total Spend]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: attributed
+          name: Attributed Revenue
+          formula: "[Total Attributed Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: roas
+          name: Channel ROAS
+          formula: "[Return on Ad Spend]"
+          format:
+            kind: number
+            decimals: 2
+        - id: conversion
+          name: Conversion Rate
+          formula: "[Conversion Rate]"
+          format:
+            kind: percent
+            decimals: 1
+    - id: marketing_roas
+      name: Attributed Revenue by Marketing Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_campaigns
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: attributed
+          name: Attributed Revenue
+          formula: Sum([Attributed Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: channel
+        sort:
+          by: attributed
+          direction: descending
+      yAxis:
+        columnIds:
+          - attributed
+      color:
+        by: single
+        value: "#22d3ee"
+      fill: gradient
+    - id: channel_efficiency
+      name: Return on Ad Spend by Marketing Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_campaigns
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: roas
+          name: ROAS
+          formula: "[Return on Ad Spend]"
+          format:
+            kind: number
+            decimals: 2
+      xAxis:
+        columnId: channel
+        sort:
+          by: roas
+          direction: descending
+      yAxis:
+        columnIds:
+          - roas
+      color:
+        by: scale
+        column: roas
+        scheme: greens
+    - id: return_pairings
+      name: Return Rate by Product Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_sales
+      columns:
+        - id: category
+          name: Category
+          formula: "[Category]"
+        - id: return_rate
+          name: Return Rate
+          formula: SafeDivide(CountIf([Status] = "Returned"), Count())
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: category
+        sort:
+          by: return_rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - return_rate
+      color:
+        by: scale
+        column: return_rate
+        scheme: red-green
+  pages:
+    - id: pulse
+      name: Executive Pulse
+      elements:
+        - pulse_date
+        - pulse_region
+        - pulse_channel
+        - kpi_revenue
+        - kpi_profit
+        - kpi_margin
+        - kpi_orders
+        - kpi_returns
+        - revenue_trend
+        - channel_revenue
+        - category_revenue
+        - region_revenue
+    - id: growth
+      name: Customer & Product
+      elements:
+        - growth_note
+        - segment_mix
+        - loyalty_value
+        - top_products
+        - channel_aov
+        - id: customer_leaderboard
+          height: 14
+    - id: operations
+      name: Operations
+      elements:
+        - ops_date
+        - kpi_on_time
+        - kpi_transit
+        - kpi_subsidy
+        - kpi_refunds
+        - kpi_tickets
+        - on_time_trend
+        - carrier_performance
+        - return_reasons
+        - ticket_categories
+        - support_channel_csat
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - base_sales
+        - base_shipments
+        - base_returns
+        - base_support
+    - id: marketing
+      name: Marketing & Returns
+      elements:
+        - marketing_roas
+        - channel_efficiency
+        - return_pairings
+        - base_campaigns
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="pulse">
+      <Element elementId="pulse_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="pulse_region" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="pulse_channel" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="kpi_revenue" gridColumn="1 / 6" gridRow="3 / 7"/>
+      <Element elementId="kpi_profit" gridColumn="6 / 11" gridRow="3 / 7"/>
+      <Element elementId="kpi_margin" gridColumn="11 / 16" gridRow="3 / 7"/>
+      <Element elementId="kpi_orders" gridColumn="16 / 21" gridRow="3 / 7"/>
+      <Element elementId="kpi_returns" gridColumn="21 / 25" gridRow="3 / 7"/>
+      <Element elementId="revenue_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="channel_revenue" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="category_revenue" gridColumn="1 / 13" gridRow="16 / 25"/>
+      <Element elementId="region_revenue" gridColumn="13 / 25" gridRow="16 / 25"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="growth">
+      <Element elementId="growth_note" gridColumn="1 / 25" gridRow="1 / 3"/>
+      <Element elementId="segment_mix" gridColumn="1 / 13" gridRow="3 / 12"/>
+      <Element elementId="loyalty_value" gridColumn="13 / 25" gridRow="3 / 12"/>
+      <Element elementId="top_products" gridColumn="1 / 13" gridRow="12 / 21"/>
+      <Element elementId="channel_aov" gridColumn="13 / 25" gridRow="12 / 21"/>
+      <Element elementId="customer_leaderboard" gridColumn="1 / 25" gridRow="21 / 35"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="operations">
+      <Element elementId="ops_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="kpi_on_time" gridColumn="1 / 6" gridRow="3 / 7"/>
+      <Element elementId="kpi_transit" gridColumn="6 / 11" gridRow="3 / 7"/>
+      <Element elementId="kpi_subsidy" gridColumn="11 / 16" gridRow="3 / 7"/>
+      <Element elementId="kpi_refunds" gridColumn="16 / 21" gridRow="3 / 7"/>
+      <Element elementId="kpi_tickets" gridColumn="21 / 25" gridRow="3 / 7"/>
+      <Element elementId="on_time_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="carrier_performance" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="return_reasons" gridColumn="1 / 13" gridRow="16 / 25"/>
+      <Element elementId="ticket_categories" gridColumn="13 / 25" gridRow="16 / 25"/>
+      <Element elementId="support_channel_csat" gridColumn="1 / 25" gridRow="25 / 34"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="base_sales" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="base_shipments" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="base_returns" gridColumn="1 / 25" gridRow="25 / 37"/>
+      <Element elementId="base_support" gridColumn="1 / 25" gridRow="37 / 49"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="marketing">
+      <Element elementId="marketing_roas" gridColumn="1 / 13" gridRow="1 / 10"/>
+      <Element elementId="channel_efficiency" gridColumn="13 / 25" gridRow="1 / 10"/>
+      <Element elementId="return_pairings" gridColumn="1 / 25" gridRow="10 / 19"/>
+      <Element elementId="base_campaigns" gridColumn="1 / 25" gridRow="19 / 31"/>
+    </Page>
+  settings:
+    theme:
+      preset: midnight
+      palette: vivid

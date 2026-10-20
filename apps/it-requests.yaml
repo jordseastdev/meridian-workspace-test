@@ -1,0 +1,220 @@
+workbookId: it-requests
+name: IT Requests
+description: Phone-friendly IT request intake, shared status list, and approval queue for the team.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: requests_data
+      name: IT requests
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: request_id
+          name: Request ID
+          type: text
+          required: true
+        - id: requester
+          name: Requester
+          type: text
+          default:
+            kind: user
+          required: true
+        - id: need
+          name: What you need
+          type: text
+          required: true
+        - id: category
+          name: Category
+          type: text
+          values:
+            - Hardware
+            - Software
+            - Access
+          required: true
+        - id: priority
+          name: Priority
+          type: text
+          values:
+            - Low
+            - Normal
+            - High
+            - Urgent
+          required: true
+        - id: needed_by
+          name: Needed by
+          type: date
+          required: true
+        - id: estimated_cost
+          name: Estimated cost
+          type: number
+          min: 0
+        - id: details
+          name: Details
+          type: text
+          multiline: true
+        - id: status
+          name: Status
+          type: text
+          values:
+            - Open
+            - Approved
+            - Rejected
+          default:
+            kind: constant
+            value: Open
+        - id: decision_note
+          name: Decision note
+          type: text
+    - id: request_form
+      kind: form
+      title: Submit an IT request
+      tableElementId: requests_data
+      fields:
+        - request_id
+        - need
+        - category
+        - priority
+        - needed_by
+        - estimated_cost
+        - details
+      submitText: Submit request
+    - id: request_list
+      name: All requests & approvals
+      kind: table
+      source:
+        kind: table
+        elementId: requests_data
+      columns:
+        - id: request_id
+          name: Request ID
+        - id: requester
+          name: Requester
+        - id: need
+          name: What you need
+        - id: category
+          name: Category
+        - id: priority
+          name: Priority
+        - id: needed_by
+          name: Needed by
+        - id: estimated_cost
+          name: Estimated cost
+        - id: details
+          name: Details
+        - id: status
+          name: Status
+        - id: decision_note
+          name: Decision note
+      sort:
+        - columnId: needed_by
+          direction: ascending
+      rowActions:
+        - id: approve
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: '[Status] = "Open"'
+          ask:
+            label: Approval note
+            placeholder: Optional note
+          effects:
+            - effect: update-rows
+              tableElementId: requests_data
+              whichRows:
+                type: column-match
+                columnId: request_id
+                value:
+                  type: selection
+                  columnId: request_id
+              values:
+                status:
+                  type: constant
+                  value: Approved
+                decision_note:
+                  type: answer
+        - id: reject
+          text: Reject
+          appearance: danger
+          icon: x
+          showWhen: '[Status] = "Open"'
+          ask:
+            label: Rejection reason
+            placeholder: Explain why
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: requests_data
+              whichRows:
+                type: column-match
+                columnId: request_id
+                value:
+                  type: selection
+                  columnId: request_id
+              values:
+                status:
+                  type: constant
+                  value: Rejected
+                decision_note:
+                  type: answer
+      display: cards
+      card:
+        title: need
+        subtitle: requester
+        status: status
+        fields:
+          - category
+          - priority
+          - needed_by
+          - estimated_cost
+          - details
+          - decision_note
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_help
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: it_help
+      text: Ask IT Request Helper
+      appearance: filled
+      icon: sparkles
+    - id: it_agent
+      kind: agent
+      agentId: it-request-helper
+      placeholder: Ask about request priorities, approvals, or how to complete a request.
+      height: 520
+  pages:
+    - id: requests
+      name: Requests
+      elements:
+        - request_form
+        - request_list
+        - ask_button
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="requests">
+      <Element elementId="request_form" gridColumn="1 / 25" gridRow="1 / 9"/>
+      <Element elementId="request_list" gridColumn="1 / 25" gridRow="9 / 21"/>
+      <Element elementId="ask_button" gridColumn="1 / 5" gridRow="21 / 23"/>
+      <Element elementId="requests_data" gridColumn="1 / 25" gridRow="23 / 35"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="it_help">
+      <Element elementId="it_agent" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: it_help
+      kind: drawer
+      title: IT Request Helper
+      size: large
+      elements:
+        - it_agent
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

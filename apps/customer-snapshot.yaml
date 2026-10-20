@@ -1,0 +1,278 @@
+workbookId: customer-snapshot
+name: Customer Snapshot
+description: A quick dashboard for exploring TPCH customers, market segments, nations, and account balances.
+folderId: tpch
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: customer_base
+      name: Customer Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: customer
+        elementId: customer
+      columns:
+        - id: customer_key
+          name: Customer Key
+          formula: "[Customers/Customer Key]"
+        - id: customer_name
+          name: Customer Name
+          formula: "[Customers/Customer Name]"
+        - id: market_segment
+          name: Market Segment
+          formula: "[Customers/Market Segment]"
+        - id: nation_key
+          name: Nation Key
+          formula: "[Customers/Nation Key]"
+        - id: account_balance
+          name: Account Balance
+          formula: "[Customers/Account Balance]"
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+        - id: phone
+          name: Phone
+          formula: "[Customers/Phone]"
+        - id: address
+          name: Address
+          formula: "[Customers/Address]"
+        - id: comment
+          name: Comment
+          formula: "[Customers/Comment]"
+    - id: segment_filter
+      name: Market Segment
+      kind: control
+      controlId: market_segment
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: customer_base
+          columnId: market_segment
+    - id: nation_filter
+      name: Nation
+      kind: control
+      controlId: nation_key
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: customer_base
+          columnId: nation_key
+    - id: kpi_customers
+      name: Customers
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: value
+          name: Customers
+          formula: CountDistinct([Customer Key])
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_total_balance
+      name: Total Account Balance
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: value
+          name: Total Account Balance
+          formula: Sum([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_avg_balance
+      name: Average Account Balance
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: value
+          name: Average Account Balance
+          formula: Avg([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+      value:
+        columnId: value
+    - id: customers_by_segment
+      name: Customers by Market Segment
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: segment
+          name: Market Segment
+          formula: "[Market Segment]"
+        - id: customers
+          name: Customers
+          formula: CountDistinct([Customer Key])
+          format:
+            kind: number
+            decimals: 0
+      xAxis:
+        columnId: segment
+        sort:
+          by: customers
+          direction: descending
+      yAxis:
+        columnIds:
+          - customers
+      color:
+        by: single
+        value: "#2563eb"
+      dataLabel:
+        labels: shown
+        labelDisplay: all
+    - id: balance_by_segment
+      name: Account Balance by Market Segment
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: segment
+          name: Market Segment
+          formula: "[Market Segment]"
+        - id: balance
+          name: Account Balance
+          formula: Sum([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 0
+      xAxis:
+        columnId: segment
+        sort:
+          by: balance
+          direction: descending
+      yAxis:
+        columnIds:
+          - balance
+      color:
+        by: scale
+        column: balance
+        scheme: teals
+      fill: gradient
+    - id: top_customers
+      name: Top 10 Customers by Account Balance
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: customer
+          name: Customer
+          formula: "[Customer Name]"
+        - id: balance
+          name: Account Balance
+          formula: Sum([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+      xAxis:
+        columnId: customer
+        sort:
+          by: balance
+          direction: descending
+      yAxis:
+        columnIds:
+          - balance
+      color:
+        by: single
+        value: "#0f766e"
+      orientation: horizontal
+      dataLabel:
+        labels: shown
+        labelDisplay: all
+      limit: 10
+    - id: customer_detail
+      name: Customer Detail
+      kind: table
+      source:
+        kind: table
+        elementId: customer_base
+      columns:
+        - id: customer_key
+          name: Customer Key
+          formula: "[Customer Key]"
+        - id: customer_name
+          name: Customer Name
+          formula: "[Customer Name]"
+        - id: market_segment
+          name: Market Segment
+          formula: "[Market Segment]"
+        - id: nation_key
+          name: Nation Key
+          formula: "[Nation Key]"
+        - id: account_balance
+          name: Account Balance
+          formula: "[Account Balance]"
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+        - id: phone
+          name: Phone
+          formula: "[Phone]"
+      sort:
+        - columnId: account_balance
+          direction: descending
+      limit: 100
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - segment_filter
+        - nation_filter
+        - kpi_customers
+        - kpi_total_balance
+        - kpi_avg_balance
+        - customers_by_segment
+        - balance_by_segment
+        - id: top_customers
+          width: 24
+        - id: customer_detail
+          height: 14
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - customer_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="segment_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="nation_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_customers" gridColumn="1 / 9" gridRow="3 / 7"/>
+      <Element elementId="kpi_total_balance" gridColumn="9 / 17" gridRow="3 / 7"/>
+      <Element elementId="kpi_avg_balance" gridColumn="17 / 25" gridRow="3 / 7"/>
+      <Element elementId="customers_by_segment" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="balance_by_segment" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="top_customers" gridColumn="1 / 25" gridRow="16 / 25"/>
+      <Element elementId="customer_detail" gridColumn="1 / 25" gridRow="25 / 39"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="customer_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: ocean

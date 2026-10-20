@@ -1,0 +1,264 @@
+workbookId: retail-sales-overview-5
+name: Retail Sales Overview
+description: Sales performance overview with a separate ranked product view, built on the certified Retail model.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: sales_base
+      name: Sales Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: order_month
+          name: Order Month
+          formula: "[Orders/Order Month]"
+        - id: channel
+          name: Channel
+          formula: "[Orders/Channel]"
+        - id: status
+          name: Status
+          formula: "[Orders/Status]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: product_name
+          name: Product Name
+          formula: "[Product/Product Name]"
+        - id: category
+          name: Category
+          formula: "[Product/Category]"
+        - id: profit
+          name: Profit
+          formula: "[Orders/Profit]"
+    - id: f_order_date
+      kind: control
+      controlId: order_date_filter
+      controlType: date-range
+      label: Order date
+      value:
+        start: 2025-01-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: sales_base
+          columnId: order_date
+    - id: f_channel
+      kind: control
+      controlId: channel_filter
+      controlType: list
+      label: Channel
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: sales_base
+          columnId: channel
+    - id: f_product_date
+      kind: control
+      controlId: product_order_date_filter
+      controlType: date-range
+      label: Order date
+      value:
+        start: 2025-01-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: sales_base
+          columnId: order_date
+    - id: kpi_revenue
+      name: Total Revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: value
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      value:
+        columnId: value
+    - id: kpi_orders
+      name: Order Count
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: value
+          name: Order Count
+          formula: "[Order Count]"
+      value:
+        columnId: value
+    - id: kpi_aov
+      name: Avg Order Value
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: value
+          name: Avg Order Value
+          formula: "[Avg Order Value]"
+      value:
+        columnId: value
+    - id: kpi_margin
+      name: Gross Margin
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: value
+          name: Gross Margin
+          formula: "[Gross Margin]"
+      value:
+        columnId: value
+    - id: sales_trend
+      name: Monthly Revenue
+      kind: line-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: channel_sales
+      name: Revenue by Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: channel
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+    - id: top_products
+      name: Top Products by Revenue
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: product
+          name: Product
+          formula: "[Product Name]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: product
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      orientation: horizontal
+      limit: 10
+    - id: product_detail
+      name: Product Revenue Detail
+      kind: table
+      source:
+        kind: table
+        elementId: sales_base
+      columns:
+        - id: product
+          name: Product
+          formula: "[Product Name]"
+        - id: category
+          name: Category
+          formula: "[Category]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      groupings:
+        - id: by_product
+          groupBy:
+            - product
+            - category
+          calculations:
+            - revenue
+      sort:
+        - columnId: revenue
+          direction: descending
+      limit: 100
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - f_order_date
+        - f_channel
+        - kpi_revenue
+        - kpi_orders
+        - kpi_aov
+        - kpi_margin
+        - sales_trend
+        - channel_sales
+    - id: products
+      name: Products
+      elements:
+        - f_product_date
+        - top_products
+        - product_detail
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - sales_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="f_order_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_channel" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_revenue" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_orders" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_aov" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_margin" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="sales_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="channel_sales" gridColumn="13 / 25" gridRow="7 / 16"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="products">
+      <Element elementId="f_product_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="top_products" gridColumn="1 / 25" gridRow="3 / 12"/>
+      <Element elementId="product_detail" gridColumn="1 / 25" gridRow="12 / 24"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="sales_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

@@ -1,0 +1,277 @@
+workbookId: retail-performance-action-hub
+name: Retail Performance & Action Hub
+description: Visual dashboard for retail revenue, margin, marketing efficiency and returns, with governed metrics for decision support.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: revenue_kpi
+      name: Net Revenue
+      kind: kpi-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: value
+          name: Net Revenue
+          formula: "[Total Revenue]"
+      value:
+        columnId: value
+    - id: margin_kpi
+      name: Gross Margin
+      kind: kpi-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: value
+          name: Gross Margin
+          formula: "[Gross Margin]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: revenue_trend
+      name: Monthly Revenue
+      kind: line-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Net Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: margin_trend
+      name: Monthly Gross Margin
+      kind: line-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: margin
+          name: Gross Margin
+          formula: "[Gross Margin]"
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - margin
+    - id: channel_roas
+      name: Marketing ROAS by Channel
+      kind: bar-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: campaigns
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: roas
+          name: Return on Ad Spend
+          formula: "[Return on Ad Spend]"
+          format:
+            kind: number
+            decimals: 2
+      xAxis:
+        columnId: channel
+        sort:
+          by: roas
+          direction: descending
+      yAxis:
+        columnIds:
+          - roas
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: channel_revenue
+      name: Attributed Revenue by Channel
+      kind: bar-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: campaigns
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: attributed
+          name: Attributed Revenue
+          formula: "[Total Attributed Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: channel
+        sort:
+          by: attributed
+          direction: descending
+      yAxis:
+        columnIds:
+          - attributed
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: returns_category
+      name: Return Rate by Product Category
+      kind: bar-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: category
+          name: Category
+          formula: "[Product/Category]"
+        - id: rate
+          name: Return Rate
+          formula: "[Return Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: category
+        sort:
+          by: rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - rate
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: returns_channel
+      name: Return Rate by Sales Channel
+      kind: bar-chart
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: rate
+          name: Return Rate
+          formula: "[Return Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: channel
+        sort:
+          by: rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - rate
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: action_log
+      name: Investigation and Action Tracker
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: issue
+          name: Finding / opportunity
+          type: text
+          multiline: true
+          required: true
+        - id: proposed_action
+          name: Proposed action
+          type: text
+          multiline: true
+          required: true
+        - id: owner
+          name: Owner
+          type: text
+        - id: status
+          name: Status
+          type: text
+          values:
+            - To investigate
+            - In progress
+            - Done
+            - Parked
+        - id: due_date
+          name: Due date
+          type: date
+        - id: outcome
+          name: Outcome / notes
+          type: text
+          multiline: true
+      shareAsTable: true
+    - id: analyst_chat
+      name: Retail Performance Analyst
+      kind: agent
+      agentId: retail-performance-analyst
+      placeholder: Ask about performance, investigate a finding, or record an action.
+      height: 560
+  pages:
+    - id: overview
+      name: Performance Overview
+      elements:
+        - revenue_kpi
+        - margin_kpi
+        - revenue_trend
+        - margin_trend
+        - channel_roas
+        - channel_revenue
+        - returns_category
+        - returns_channel
+    - id: actions
+      name: Action Tracker & Analyst
+      elements:
+        - action_log
+        - analyst_chat
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="revenue_kpi" gridColumn="1 / 13" gridRow="1 / 5"/>
+      <Element elementId="margin_kpi" gridColumn="13 / 25" gridRow="1 / 5"/>
+      <Element elementId="revenue_trend" gridColumn="1 / 13" gridRow="5 / 14"/>
+      <Element elementId="margin_trend" gridColumn="13 / 25" gridRow="5 / 14"/>
+      <Element elementId="channel_roas" gridColumn="1 / 13" gridRow="14 / 23"/>
+      <Element elementId="channel_revenue" gridColumn="13 / 25" gridRow="14 / 23"/>
+      <Element elementId="returns_category" gridColumn="1 / 13" gridRow="23 / 32"/>
+      <Element elementId="returns_channel" gridColumn="13 / 25" gridRow="23 / 32"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="actions">
+      <Element elementId="action_log" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="analyst_chat" gridColumn="1 / 25" gridRow="13 / 31"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

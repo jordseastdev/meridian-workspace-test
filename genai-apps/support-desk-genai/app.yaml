@@ -1,0 +1,35 @@
+genaiAppId: support-desk-genai
+name: Support Desk (GenAI)
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: support-ticket-workspace-3
+  source: |-
+    root = Stack([page], "column", "l")
+    $search = ""
+    $picked = null
+    $assignee = ""
+    $note = ""
+    queue = Query("rows", {element: "ticket_work", search: $search, filters: [{column: "ticket_status", values: ["Open"]}, {column: "closed", values: [false]}], sort: [{column: "opened_at", direction: "desc"}], limit: 200}, {"rows": [], "total": 0})
+    openCount = Query("rows", {element: "ticket_work", filters: [{column: "ticket_status", values: ["Open"]}, {column: "closed", values: [false]}], limit: 1}, {"rows": [], "total": 0})
+    urgentCount = Query("rows", {element: "ticket_work", filters: [{column: "ticket_status", values: ["Open"]}, {column: "closed", values: [false]}, {column: "priority", values: ["Urgent"]}], limit: 1}, {"rows": [], "total": 0})
+    byCategory = Query("rows", {element: "ticket_work", filters: [{column: "ticket_status", values: ["Open"]}, {column: "closed", values: [false]}], groupBy: "category"}, {"rows": [], "total": 0})
+    selected = Query("rows", {element: "ticket_work", filters: [{column: "ticket_id", values: [$picked]}], limit: 1}, {"rows": [], "total": 0})
+    saveResult = Mutation("update_row", {element: "ticket_work", row: $picked, values: {assigned_to: $assignee, working_note: $note}})
+    closeResult = Mutation("update_row", {element: "ticket_work", row: $picked, values: {closed: true}})
+    page = Stack([heading, metrics, chart, searchField, ticketList, detailPanel], "column", "m")
+    heading = Header("Support desk", "Open ticket queue")
+    metrics = Stack([openKpi, urgentKpi], "row", "m", true)
+    openKpi = Kpi("Open tickets", openCount.total)
+    urgentKpi = Kpi("Urgent tickets", urgentCount.total)
+    chart = BarChart(byCategory.rows, "category", "count", "Open tickets by category")
+    searchField = FormControl("Search tickets", Input("search", "Search ticket ID, category, or assignee", "text", null, $search))
+    ticketList = Stack(@Each(queue.rows, "t", Card(t.ticket_id, t.category, Badge(t.ticket_status, "info"), [Field("Priority", t.priority), Field("Assignee", t.assigned_to)], null, Action([@Set($picked, t.ticket_id), @Set($assignee, t.assigned_to), @Set($note, t.working_note)]))), "column", "s")
+    detailPanel = Panel("Ticket details", $picked != null, [detailCard, editForm, closeButton], Action([@Set($picked, null)]))
+    detailCard = Card(@First(selected.rows).ticket_id, @First(selected.rows).category, Badge(@First(selected.rows).ticket_status, "info"), [Field("Priority", @First(selected.rows).priority), Field("Customer ID", @First(selected.rows).customer_id), Field("Order ID", @First(selected.rows).order_id), Field("Opened", @First(selected.rows).opened_at), Field("Contact channel", @First(selected.rows).contact_channel), Field("Original agent", @First(selected.rows).original_agent)])
+    editForm = Form("ticket-update", saveButton, [assigneeField, noteField])
+    assigneeField = FormControl("Assignee", Input("assignee", "Enter assignee", "text", {required: true}, $assignee))
+    noteField = FormControl("Internal note", TextArea("note", "Add an internal note", 4, null, $note))
+    saveButton = Button("Save", Action([@Run(saveResult), @Run(queue), @Run(openCount), @Run(urgentCount), @Run(byCategory), @Run(selected)]), "primary")
+    closeButton = Button("Close ticket", Action([@Run(closeResult), @Run(queue), @Run(openCount), @Run(urgentCount), @Run(byCategory), @Set($picked, null)]), "secondary", "destructive")
+  prompt: "Support desk: KPIs, category chart, searchable open queue, ticket panel with assign/note/close"

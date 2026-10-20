@@ -1,0 +1,279 @@
+workbookId: retail-sales-overview-3
+name: Retail Sales Overview & Products
+description: Sales KPIs and product performance using the certified Retail model.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: order_data
+      name: Filtered order lines
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: order_month
+          name: Order Month
+          formula: "[Orders/Order Month]"
+        - id: channel
+          name: Channel
+          formula: "[Orders/Channel]"
+        - id: status
+          name: Status
+          formula: "[Orders/Status]"
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+        - id: profit
+          name: Profit
+          formula: "[Orders/Profit]"
+        - id: product
+          name: Product
+          formula: "[Product/Product Name]"
+    - id: date_filter
+      kind: control
+      controlId: order_dates
+      controlType: date-range
+      label: Order date
+      value:
+        start: 2024-09-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: order_data
+          columnId: order_date
+    - id: channel_filter
+      kind: control
+      controlId: sales_channel
+      controlType: list
+      label: Channel
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: order_data
+          columnId: channel
+    - id: kpi_revenue
+      name: Total revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: v
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: m
+          name: Month
+          formula: DateTrunc("month", [Order Date])
+      value:
+        columnId: v
+      trend:
+        columnId: m
+    - id: kpi_orders
+      name: Order lines
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: v
+          name: Order Count
+          formula: "[Order Count]"
+      value:
+        columnId: v
+    - id: kpi_aov
+      name: Average order value
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: v
+          name: Avg Order Value
+          formula: "[Avg Order Value]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: v
+    - id: kpi_margin
+      name: Gross margin
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: v
+          name: Gross Margin
+          formula: "[Gross Margin]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: monthly_revenue
+      name: Monthly revenue
+      kind: line-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: channel_revenue
+      name: Revenue by channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: channel
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+    - id: top_products
+      name: Top products by revenue
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: product
+          name: Product
+          formula: "[Product]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: product
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      orientation: horizontal
+      limit: 10
+    - id: product_table
+      name: Product performance
+      kind: table
+      source:
+        kind: table
+        elementId: order_data
+      columns:
+        - id: product
+          name: Product
+          formula: "[Product]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: units
+          name: Units Sold
+          formula: "[Units Sold]"
+        - id: profit
+          name: Profit
+          formula: Sum([Profit])
+          format:
+            kind: currency
+            decimals: 0
+      groupings:
+        - id: by_product
+          groupBy:
+            - product
+          calculations:
+            - revenue
+            - units
+            - profit
+          sort:
+            - columnId: revenue
+              direction: descending
+      limit: 10
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - date_filter
+        - channel_filter
+        - kpi_revenue
+        - kpi_orders
+        - kpi_aov
+        - kpi_margin
+        - monthly_revenue
+        - channel_revenue
+    - id: products
+      name: Products
+      elements:
+        - top_products
+        - product_table
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - order_data
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="date_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="channel_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_revenue" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_orders" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_aov" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_margin" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="monthly_revenue" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="channel_revenue" gridColumn="13 / 25" gridRow="7 / 16"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="products">
+      <Element elementId="top_products" gridColumn="1 / 25" gridRow="1 / 10"/>
+      <Element elementId="product_table" gridColumn="1 / 25" gridRow="10 / 22"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="order_data" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

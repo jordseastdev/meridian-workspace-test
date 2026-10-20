@@ -1,0 +1,54 @@
+dataModelId: products
+name: Products
+description: Semantic model over catalog.products (pg). Describe what one row represents.
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: products
+      name: Products
+      description: ""
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: pg
+        path:
+          - PG
+          - CATALOG
+          - PRODUCTS
+      columns:
+        - id: sku
+          name: Sku
+          description: ""
+          formula: "[PRODUCTS/SKU]"
+          role: dimension
+        - id: product
+          name: Product
+          description: ""
+          formula: "[PRODUCTS/PRODUCT]"
+          role: dimension
+        - id: category
+          name: Category
+          description: ""
+          formula: "[PRODUCTS/CATEGORY]"
+          role: dimension
+        - id: unit_cost
+          name: Unit Cost
+          description: ""
+          formula: "[PRODUCTS/UNIT_COST]"
+          role: measure
+        - id: launched
+          name: Launched
+          description: ""
+          formula: "[PRODUCTS/LAUNCHED]"
+          role: time
+      metrics:
+        - id: row_count
+          name: Row Count
+          description: Number of rows.
+          formula: Count()
+        - id: total_unit_cost
+          name: Total Unit Cost
+          description: ""
+          formula: Sum([Unit Cost])
+      visibleAsSource: true

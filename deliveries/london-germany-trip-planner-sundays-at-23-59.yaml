@@ -1,0 +1,15 @@
+deliveryId: london-germany-trip-planner-sundays-at-23-59
+name: London & Germany Trip Planner, sundays at 23:59
+contents:
+  schemaVersion: 1
+  kind: delivery
+  schedule: 59 23 * * 0
+  timezone: Europe/London
+  target:
+    workbookId: london-germany-trip-planner
+  format: csv
+  destination:
+    kind: saved
+    destinationId: general-test
+  enabled: true
+  maxRows: 5000

@@ -1,0 +1,19 @@
+agentId: ticket-triage-assistant
+name: Ticket Triage Assistant
+contents:
+  schemaVersion: 1
+  kind: agent
+  instructions: Help the viewer triage support tickets and interpret ticket analytics. Use the retail support_tickets data model table and the current workbook context. Identify urgent open tickets, explain category and priority patterns, and discuss average resolution hours over time. Be concise and do not claim tickets were assigned or closed unless the viewer used the workbook action.
+  dataModels:
+    - retail
+  workbooks:
+    - support-ticket-triage-2
+  tools:
+    - read-data
+  approval: confirm-writes
+  maxSteps: 8
+  greeting: Hi! I can help triage open tickets and explain the support trends.
+  starters:
+    - Which open tickets look most urgent?
+    - How are resolution times trending?
+  enabled: true

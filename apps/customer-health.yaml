@@ -1,0 +1,277 @@
+workbookId: customer-health
+name: Customer Health
+description: Churn-risk watchlist for customer success. Flags customers who have gone quiet and lets CSMs log outreach notes that write back to the warehouse.
+folderId: operations
+tags:
+  - app
+  - writeback
+  - customer-success
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: header
+      kind: text
+      body: |
+        # Customer Health
+        {{CountDistinct([Orders/Customer ID]) | number}} customers in view, risk scored as of Aug 31, 2025. Log outreach in the CSM table below.
+    - id: ctl_segment
+      kind: control
+      controlId: segment
+      controlType: segmented
+      label: Segment
+      filters:
+        - source:
+            kind: table
+            elementId: orders
+          columnId: segment
+    - id: ctl_tier
+      kind: control
+      controlId: tier
+      controlType: list
+      label: Loyalty tier
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: orders
+          columnId: tier
+    - id: orders
+      name: Orders
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Orders/Customer ID]"
+        - id: customer
+          name: Customer
+          formula: "[Customer/Customer Name]"
+        - id: segment
+          name: Segment
+          formula: "[Customer/Segment]"
+        - id: tier
+          name: Tier
+          formula: "[Customer/Loyalty Tier]"
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+    - id: risk
+      name: Risk Accounts
+      description: One row per customer. Risk is High after 120 quiet days, Medium after 60.
+      kind: table
+      source:
+        kind: table
+        elementId: orders
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+          hidden: true
+        - id: customer
+          name: Customer
+          formula: "[Customer]"
+        - id: segment
+          name: Segment
+          formula: "[Segment]"
+        - id: tier
+          name: Tier
+          formula: "[Tier]"
+        - id: last_order
+          name: Last Order
+          formula: Max([Order Date])
+        - id: days_quiet
+          name: Days Quiet
+          formula: DateDiff("day", Max([Order Date]), Date("2025-08-31"))
+        - id: orders_n
+          name: Orders
+          formula: CountDistinct([Order ID])
+        - id: ltv
+          name: Lifetime Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+        - id: risk
+          name: Risk
+          formula: If([Days Quiet] > 120, "High", [Days Quiet] > 60, "Medium", "Low")
+      groupings:
+        - id: by_customer
+          groupBy:
+            - customer_id
+            - customer
+            - segment
+            - tier
+          calculations:
+            - last_order
+            - days_quiet
+            - orders_n
+            - ltv
+            - risk
+          sort:
+            - columnId: ltv
+              direction: descending
+      conditionalFormats:
+        - type: single
+          columnIds:
+            - risk
+          condition: =
+          value: High
+          style:
+            color: "#D64545"
+            bold: true
+        - type: dataBars
+          columnIds:
+            - ltv
+    - id: kpi_high
+      name: High-risk customers
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: risk
+        groupingId: by_customer
+      columns:
+        - id: n
+          name: Customers
+          formula: CountIf([Risk] = "High")
+      value:
+        columnId: n
+    - id: kpi_rev_at_risk
+      name: Lifetime revenue at risk
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: risk
+        groupingId: by_customer
+      columns:
+        - id: v
+          name: Revenue
+          formula: SumIf([Lifetime Revenue], [Risk] = "High")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: risk_mix
+      name: Customers by risk
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: risk
+        groupingId: by_customer
+      columns:
+        - id: r
+          name: Risk
+          formula: "[Risk]"
+        - id: n
+          name: Customers
+          formula: Count()
+      value:
+        columnId: n
+      category:
+        columnId: r
+    - id: risk_list
+      name: High and medium risk
+      kind: table
+      source:
+        kind: table
+        elementId: risk
+        groupingId: by_customer
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+          hidden: true
+        - id: customer
+          name: Customer
+          formula: "[Customer]"
+        - id: risk
+          name: Risk
+          formula: "[Risk]"
+        - id: days_quiet
+          name: Days Quiet
+          formula: "[Days Quiet]"
+        - id: ltv
+          name: Lifetime Revenue
+          formula: "[Lifetime Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      filters:
+        - id: at_risk
+          kind: list
+          columnId: risk
+          mode: include
+          values:
+            - High
+            - Medium
+      sort:
+        - columnId: ltv
+          direction: descending
+    - id: notes
+      name: CSM outreach
+      description: One row per customer; CSMs edit status and notes, which are written to the warehouse with an edit log.
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: risk_list
+        connectionId: default
+      columns:
+        - id: customer_id
+          name: Customer ID
+          key: customer_id
+        - id: customer
+          name: Customer
+          formula: "[Customer]"
+        - id: risk
+          name: Risk
+          formula: "[Risk]"
+        - id: status
+          name: Outreach
+          type: text
+          values:
+            - Not started
+            - Contacted
+            - Saved
+            - Churned
+        - id: next_step
+          name: Next step
+          type: date
+        - id: note
+          name: Notes
+          type: text
+  pages:
+    - id: watchlist
+      name: Watchlist
+    - id: data
+      name: Data
+      visibility: hidden
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="watchlist">
+      <Element elementId="header" gridColumn="1 / 13" gridRow="1 / 3"/>
+      <Element elementId="ctl_segment" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ctl_tier" gridColumn="19 / 25" gridRow="1 / 3"/>
+      <Element elementId="kpi_high" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_rev_at_risk" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="risk_mix" gridColumn="13 / 25" gridRow="3 / 11"/>
+      <Element elementId="risk" gridColumn="1 / 25" gridRow="11 / 25"/>
+      <Element elementId="notes" gridColumn="1 / 25" gridRow="25 / 39"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="orders" gridColumn="1 / 25" gridRow="1 / 15"/>
+      <Element elementId="risk_list" gridColumn="1 / 25" gridRow="15 / 29"/>
+    </Page>
+  settings:
+    theme:
+      preset: aurora

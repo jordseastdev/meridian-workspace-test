@@ -1,0 +1,434 @@
+workbookId: support-ticket-triage-10
+name: Support Ticket Triage
+description: Triage open support tickets, track status and category, and get help from an embedded assistant.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: ticket_source
+      name: Ticket source
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: support_tickets
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Support Tickets/Ticket ID]"
+        - id: opened_at
+          name: Opened At
+          formula: "[Support Tickets/Opened At]"
+        - id: channel
+          name: Contact Channel
+          formula: "[Support Tickets/Contact Channel]"
+        - id: category
+          name: Ticket Category
+          formula: "[Support Tickets/Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Support Tickets/Priority]"
+        - id: agent
+          name: Agent
+          formula: "[Support Tickets/Agent]"
+        - id: status
+          name: Ticket Status
+          formula: "[Support Tickets/Ticket Status]"
+        - id: first_response
+          name: First Response Minutes
+          formula: "[Support Tickets/First Response Minutes]"
+        - id: resolution
+          name: Resolution Hours
+          formula: "[Support Tickets/Resolution Hours]"
+        - id: csat
+          name: CSAT Score
+          formula: "[Support Tickets/CSAT Score]"
+    - id: ticket_work
+      name: Ticket assignments and closure
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: ticket_source
+        connectionId: default
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          key: ticket_id
+        - id: opened_at
+          name: Opened At
+          formula: "[Opened At]"
+        - id: channel
+          name: Contact Channel
+          formula: "[Contact Channel]"
+        - id: category
+          name: Ticket Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: agent
+          name: Agent
+          formula: "[Agent]"
+        - id: status
+          name: Ticket Status
+          formula: "[Ticket Status]"
+        - id: assigned_to
+          name: Assigned To
+          type: text
+        - id: closed_at
+          name: Closed At
+          type: datetime
+    - id: open_tickets
+      name: Open tickets
+      kind: table
+      actions:
+        - id: select_ticket
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_ticket
+              value:
+                type: selection
+                columnId: ticket_id
+            - effect: open-overlay
+              overlayId: ticket_drawer
+      source:
+        kind: table
+        elementId: ticket_work
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+        - id: opened_at
+          name: Opened At
+        - id: category
+          name: Ticket Category
+        - id: priority
+          name: Priority
+        - id: agent
+          name: Agent
+        - id: assigned_to
+          name: Assigned To
+        - id: status
+          name: Ticket Status
+        - id: closed_at
+          name: Closed At
+      filters:
+        - id: unresolved
+          kind: formula
+          formula: IsNull([closed_at]) and [Ticket Status] != "Solved"
+      visibleAsSource: true
+      rowActions:
+        - id: assign
+          text: Assign to me
+          appearance: filled
+          icon: assign
+          effects:
+            - effect: update-rows
+              tableElementId: ticket_work
+              whichRows:
+                type: column-match
+                columnId: ticket_id
+                value:
+                  type: selection
+                  columnId: ticket_id
+              values:
+                assigned_to:
+                  type: user
+                  field: email
+            - effect: notify
+              message: Ticket assigned to you
+              level: success
+        - id: close
+          text: Close
+          appearance: outline
+          icon: check
+          showWhen: IsNull([closed_at])
+          confirm: Close ticket {{ticket_id}}?
+          effects:
+            - effect: update-rows
+              tableElementId: ticket_work
+              whichRows:
+                type: column-match
+                columnId: ticket_id
+                value:
+                  type: selection
+                  columnId: ticket_id
+              values:
+                closed_at:
+                  type: now
+            - effect: notify
+              message: Ticket closed
+              level: success
+      display: cards
+      card:
+        title: ticket_id
+        subtitle: category
+        status: priority
+        fields:
+          - opened_at
+          - agent
+          - assigned_to
+          - status
+    - id: kpi_open
+      name: Open Tickets
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: open_tickets
+      columns:
+        - id: count
+          name: Open Tickets
+          formula: CountDistinct([Ticket ID])
+      value:
+        columnId: count
+    - id: kpi_status
+      name: Tickets by Status
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: ticket_source
+      columns:
+        - id: status
+          name: Status
+          formula: "[Ticket Status]"
+        - id: tickets
+          name: Tickets
+          formula: CountDistinct([Ticket ID])
+      xAxis:
+        columnId: status
+        sort:
+          by: tickets
+          direction: descending
+      yAxis:
+        columnIds:
+          - tickets
+      color:
+        by: single
+        value: "#4661c9"
+    - id: category_chart
+      name: Open Tickets by Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: open_tickets
+      columns:
+        - id: category
+          name: Category
+          formula: "[Ticket Category]"
+        - id: tickets
+          name: Tickets
+          formula: CountDistinct([Ticket ID])
+      xAxis:
+        columnId: category
+        sort:
+          by: tickets
+          direction: descending
+      yAxis:
+        columnIds:
+          - tickets
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: ticket_cards
+      name: Open Ticket Queue
+      kind: table
+      actions:
+        - id: select_ticket
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_ticket
+              value:
+                type: selection
+                columnId: ticket_id
+            - effect: open-overlay
+              overlayId: ticket_drawer
+      source:
+        kind: table
+        elementId: open_tickets
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+        - id: opened_at
+          name: Opened At
+        - id: category
+          name: Ticket Category
+        - id: priority
+          name: Priority
+        - id: agent
+          name: Agent
+        - id: assigned_to
+          name: Assigned To
+        - id: status
+          name: Ticket Status
+        - id: closed_at
+          name: Closed At
+      visibleAsSource: true
+      rowActions:
+        - id: assign
+          text: Assign to me
+          appearance: filled
+          icon: assign
+          effects:
+            - effect: update-rows
+              tableElementId: ticket_work
+              whichRows:
+                type: column-match
+                columnId: ticket_id
+                value:
+                  type: selection
+                  columnId: ticket_id
+              values:
+                assigned_to:
+                  type: user
+                  field: email
+            - effect: notify
+              message: Ticket assigned to you
+              level: success
+        - id: close
+          text: Close
+          appearance: outline
+          icon: check
+          showWhen: IsNull([closed_at])
+          confirm: Close ticket {{ticket_id}}?
+          effects:
+            - effect: update-rows
+              tableElementId: ticket_work
+              whichRows:
+                type: column-match
+                columnId: ticket_id
+                value:
+                  type: selection
+                  columnId: ticket_id
+              values:
+                closed_at:
+                  type: now
+            - effect: notify
+              message: Ticket closed
+              level: success
+      display: cards
+      card:
+        title: ticket_id
+        subtitle: category
+        status: priority
+        fields:
+          - opened_at
+          - agent
+          - assigned_to
+          - status
+    - id: selected_ticket
+      kind: control
+      controlId: selected_ticket
+      controlType: text
+      filters:
+        - source:
+            kind: table
+            elementId: ticket_source
+          columnId: ticket_id
+    - id: drawer_ticket
+      name: Ticket details
+      kind: table
+      source:
+        kind: table
+        elementId: ticket_source
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+        - id: opened_at
+          name: Opened At
+        - id: channel
+          name: Contact Channel
+        - id: category
+          name: Ticket Category
+        - id: priority
+          name: Priority
+        - id: agent
+          name: Agent
+        - id: status
+          name: Ticket Status
+        - id: first_response
+          name: First Response Minutes
+        - id: resolution
+          name: Resolution Hours
+        - id: csat
+          name: CSAT Score
+      filters:
+        - id: picked
+          kind: formula
+          formula: "[Ticket ID] = [selected_ticket]"
+    - id: support_assistant
+      kind: agent
+      agentId: support-ticket-triage-assistant
+      placeholder: Ask about ticket triage, priorities, and category patterns.
+      height: 560
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: assistant_drawer
+      text: Ask Support Triage Assistant
+      appearance: filled
+      icon: sparkles
+  pages:
+    - id: triage
+      name: Triage
+      elements:
+        - kpi_open
+        - kpi_status
+        - category_chart
+        - open_tickets
+        - ticket_cards
+        - ask_button
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - ticket_source
+        - ticket_work
+        - selected_ticket
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="triage">
+      <Element elementId="kpi_open" gridColumn="1 / 25" gridRow="1 / 5"/>
+      <Element elementId="kpi_status" gridColumn="1 / 13" gridRow="5 / 14"/>
+      <Element elementId="category_chart" gridColumn="13 / 25" gridRow="5 / 14"/>
+      <Element elementId="open_tickets" gridColumn="1 / 25" gridRow="14 / 26"/>
+      <Element elementId="ticket_cards" gridColumn="1 / 25" gridRow="26 / 38"/>
+      <Element elementId="ask_button" gridColumn="1 / 5" gridRow="38 / 40"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="ticket_source" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="ticket_work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="selected_ticket" gridColumn="1 / 7" gridRow="25 / 27"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="ticket_drawer">
+      <Element elementId="selected_ticket" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="drawer_ticket" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="assistant_drawer">
+      <Element elementId="support_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: ticket_drawer
+      kind: drawer
+      title: Ticket details
+      size: large
+      elements:
+        - selected_ticket
+        - drawer_ticket
+    - id: assistant_drawer
+      kind: drawer
+      title: Support Triage Assistant
+      size: large
+      elements:
+        - support_assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

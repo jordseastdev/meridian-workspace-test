@@ -1,0 +1,1627 @@
+dataModelId: retail
+name: Retail
+description: Curated semantic layer over the demo retail warehouse. Orders at line grain, joined to customers, products and stores.
+folderId: models
+tags:
+  - certified
+  - sales
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: orders
+      name: Orders
+      description: One row per order line. Revenue is net of discount; cost is landed unit cost times quantity.
+      kind: table
+      grain: order_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - ORDERS
+      columns:
+        - id: order_id
+          name: Order ID
+          description: Unique order line identifier.
+          formula: "[ORDERS/ORDER_ID]"
+          role: identifier
+        - id: order_date
+          name: Order Date
+          description: Calendar date the order was placed.
+          formula: "[ORDERS/ORDER_DATE]"
+          role: time
+        - id: order_month
+          name: Order Month
+          description: Order date truncated to the first of the month.
+          formula: DateTrunc("month", [Order Date])
+          role: time
+        - id: customer_id
+          name: Customer ID
+          formula: "[ORDERS/CUSTOMER_ID]"
+          hidden: true
+          role: identifier
+        - id: product_id
+          name: Product ID
+          formula: "[ORDERS/PRODUCT_ID]"
+          hidden: true
+          role: identifier
+        - id: store_id
+          name: Store ID
+          formula: "[ORDERS/STORE_ID]"
+          hidden: true
+          role: identifier
+        - id: channel
+          name: Channel
+          description: "Sales channel: Online, In Store, Mobile or Marketplace."
+          formula: "[ORDERS/CHANNEL]"
+          role: dimension
+          synonyms:
+            - sales channel
+            - source
+        - id: status
+          name: Status
+          description: Completed, Returned or Cancelled.
+          formula: "[ORDERS/STATUS]"
+          role: dimension
+        - id: quantity
+          name: Quantity
+          description: Units on the order line.
+          formula: "[ORDERS/QUANTITY]"
+          role: measure
+        - id: unit_price
+          name: Unit Price
+          description: Net price per unit after discount.
+          formula: "[ORDERS/UNIT_PRICE]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: discount
+          name: Discount
+          description: Discount rate applied to list price.
+          formula: "[ORDERS/DISCOUNT]"
+          format:
+            kind: percent
+            decimals: 0
+          role: measure
+        - id: revenue
+          name: Revenue
+          description: Net revenue for the line (unit price x quantity).
+          formula: "[ORDERS/REVENUE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: cost
+          name: Cost
+          description: Landed cost for the line.
+          formula: "[ORDERS/COST]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: profit
+          name: Profit
+          description: Revenue minus cost.
+          formula: "[Revenue] - [Cost]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: total_revenue
+          name: Total Revenue
+          description: Net revenue across all order lines.
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+          synonyms:
+            - sales
+            - gmv
+          timeline:
+            columnId: order_date
+            grain: month
+          goal: increase
+        - id: order_count
+          name: Order Count
+          description: Number of distinct order lines.
+          formula: CountDistinct([Order ID])
+          goal: increase
+        - id: aov
+          name: Avg Order Value
+          description: Revenue per order line.
+          formula: SafeDivide(Sum([Revenue]), CountDistinct([Order ID]))
+          format:
+            kind: currency
+            decimals: 2
+          goal: increase
+        - id: gross_margin
+          name: Gross Margin
+          description: Profit as a share of revenue.
+          formula: SafeDivide(Sum([Profit]), Sum([Revenue]))
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+        - id: units
+          name: Units Sold
+          description: Total units sold.
+          formula: Sum([Quantity])
+        - id: return_rate
+          name: Return Rate
+          description: Share of lines that were returned.
+          formula: SafeDivide(CountIf([Status] = "Returned"), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: decrease
+      relationships:
+        - id: orders_customers
+          name: Customer
+          targetElementId: customers
+          keys:
+            - sourceColumnId: customer_id
+              targetColumnId: customer_id
+          cardinality: many-to-one
+        - id: orders_products
+          name: Product
+          targetElementId: products
+          keys:
+            - sourceColumnId: product_id
+              targetColumnId: product_id
+          cardinality: many-to-one
+        - id: orders_stores
+          name: Store
+          targetElementId: stores
+          keys:
+            - sourceColumnId: store_id
+              targetColumnId: store_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: customers
+      name: Customers
+      description: One row per customer.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - CUSTOMERS
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[CUSTOMERS/CUSTOMER_ID]"
+          role: identifier
+        - id: customer_name
+          name: Customer Name
+          description: Full name of the customer.
+          formula: "[CUSTOMERS/CUSTOMER_NAME]"
+          role: attribute
+        - id: segment
+          name: Segment
+          description: Consumer, Small Business or Enterprise.
+          formula: "[CUSTOMERS/SEGMENT]"
+          role: dimension
+        - id: loyalty_tier
+          name: Loyalty Tier
+          description: Bronze through Platinum.
+          formula: "[CUSTOMERS/LOYALTY_TIER]"
+          role: dimension
+        - id: region
+          name: Customer Region
+          formula: "[CUSTOMERS/REGION]"
+          role: geo
+        - id: signup_date
+          name: Signup Date
+          formula: "[CUSTOMERS/SIGNUP_DATE]"
+          role: time
+        - id: email
+          name: Email
+          description: Contact email. Restricted to the PII team.
+          formula: "[CUSTOMERS/EMAIL]"
+          role: attribute
+      metrics:
+        - id: customer_count
+          name: Customer Count
+          description: Distinct customers.
+          formula: CountDistinct([Customer ID])
+      columnSecurity:
+        - columnIds:
+            - email
+          allow:
+            teams:
+              - PII
+      visibleAsSource: true
+    - id: products
+      name: Products
+      description: Product catalog with list price and unit cost.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - PRODUCTS
+      columns:
+        - id: product_id
+          name: Product ID
+          formula: "[PRODUCTS/PRODUCT_ID]"
+          role: identifier
+        - id: product_name
+          name: Product Name
+          formula: "[PRODUCTS/PRODUCT_NAME]"
+          role: attribute
+        - id: category
+          name: Category
+          description: Top-level merchandising category.
+          formula: "[PRODUCTS/CATEGORY]"
+          role: dimension
+        - id: subcategory
+          name: Subcategory
+          formula: "[PRODUCTS/SUBCATEGORY]"
+          role: dimension
+        - id: list_price
+          name: List Price
+          formula: "[PRODUCTS/LIST_PRICE]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: unit_cost
+          name: Unit Cost
+          formula: "[PRODUCTS/UNIT_COST]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+      visibleAsSource: true
+    - id: deals
+      name: Deals
+      description: Open discount requests mirrored from the CRM. Sales reps only see deals they own; everyone else sees all deals.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - DEALS
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[DEALS/DEAL_ID]"
+          role: identifier
+        - id: account
+          name: Account
+          formula: "[DEALS/ACCOUNT]"
+          role: attribute
+        - id: owner
+          name: Owner
+          description: Account executive who submitted the request.
+          formula: "[DEALS/OWNER]"
+          role: dimension
+        - id: owner_email
+          name: Owner Email
+          formula: "[DEALS/OWNER_EMAIL]"
+          hidden: true
+          role: attribute
+        - id: region
+          name: Region
+          formula: "[DEALS/REGION]"
+          role: geo
+        - id: stage
+          name: Stage
+          formula: "[DEALS/STAGE]"
+          role: dimension
+        - id: status
+          name: Status
+          formula: "[DEALS/STATUS]"
+          role: dimension
+        - id: list_amount
+          name: List Amount
+          formula: "[DEALS/LIST_AMOUNT]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: submitted_discount
+          name: Submitted Discount
+          formula: "[DEALS/SUBMITTED_DISCOUNT]"
+          format:
+            kind: percent
+            decimals: 0
+          role: measure
+        - id: age_days
+          name: Age Days
+          description: Days since the request was submitted.
+          formula: "[DEALS/AGE_DAYS]"
+          role: measure
+      rowLevelSecurity:
+        description: Members of the Sales team see only their own deals.
+        formula: If(CurrentUserInTeam("Sales"), [DEALS/OWNER_EMAIL] = CurrentUserEmail(), True)
+      visibleAsSource: true
+    - id: stores
+      name: Stores
+      description: Physical and virtual store locations.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - STORES
+      columns:
+        - id: store_id
+          name: Store ID
+          formula: "[STORES/STORE_ID]"
+          role: identifier
+        - id: store_name
+          name: Store Name
+          formula: "[STORES/STORE_NAME]"
+          role: attribute
+        - id: region
+          name: Region
+          description: Sales region that owns the store.
+          formula: "[STORES/REGION]"
+          role: geo
+        - id: state
+          name: State
+          formula: "[STORES/STATE]"
+          role: geo
+        - id: store_format
+          name: Store Format
+          formula: "[STORES/STORE_FORMAT]"
+          role: dimension
+      visibleAsSource: true
+    - id: customer_profiles
+      name: Customer Profiles
+      description: One row per customer with geography, demographics, acquisition and marketing preferences.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - CUSTOMER_PROFILES
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[CUSTOMER_PROFILES/CUSTOMER_ID]"
+          role: identifier
+        - id: city
+          name: City
+          formula: "[CUSTOMER_PROFILES/CITY]"
+          role: geo
+        - id: state
+          name: State
+          formula: "[CUSTOMER_PROFILES/STATE]"
+          role: geo
+        - id: postal_code
+          name: Postal Code
+          description: Postal code. Restricted to the PII team.
+          formula: "[CUSTOMER_PROFILES/POSTAL_CODE]"
+          role: attribute
+        - id: age_band
+          name: Age Band
+          description: Consumer customers only.
+          formula: "[CUSTOMER_PROFILES/AGE_BAND]"
+          role: dimension
+        - id: household_size
+          name: Household Size
+          formula: "[CUSTOMER_PROFILES/HOUSEHOLD_SIZE]"
+          role: measure
+        - id: employee_count
+          name: Employee Count
+          description: Business customers only.
+          formula: "[CUSTOMER_PROFILES/EMPLOYEE_COUNT]"
+          role: measure
+        - id: acquisition_channel
+          name: Acquisition Channel
+          formula: "[CUSTOMER_PROFILES/ACQUISITION_CHANNEL]"
+          role: dimension
+          synonyms:
+            - first touch
+        - id: preferred_channel
+          name: Preferred Channel
+          formula: "[CUSTOMER_PROFILES/PREFERRED_CHANNEL]"
+          role: dimension
+        - id: marketing_opt_in
+          name: Marketing Opt-in
+          formula: "[CUSTOMER_PROFILES/MARKETING_OPT_IN]"
+          role: dimension
+        - id: has_store_card
+          name: Has Store Card
+          formula: "[CUSTOMER_PROFILES/HAS_STORE_CARD]"
+          role: dimension
+        - id: assigned_csm
+          name: Assigned CSM
+          description: Customer success manager for business accounts.
+          formula: "[CUSTOMER_PROFILES/ASSIGNED_CSM]"
+          role: dimension
+        - id: last_nps_score
+          name: Last NPS Score
+          description: Most recent 0-10 survey answer.
+          formula: "[CUSTOMER_PROFILES/LAST_NPS_SCORE]"
+          role: measure
+      metrics:
+        - id: opt_in_rate
+          name: Opt-in Rate
+          formula: SafeDivide(CountIf([Marketing Opt-in]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      relationships:
+        - id: profiles_customers
+          name: Customer
+          targetElementId: customers
+          keys:
+            - sourceColumnId: customer_id
+              targetColumnId: customer_id
+          cardinality: many-to-one
+      columnSecurity:
+        - columnIds:
+            - postal_code
+          allow:
+            teams:
+              - PII
+      visibleAsSource: true
+    - id: shipments
+      name: Shipments
+      description: One row per shipped order line (online, mobile and marketplace). Delivery dates are empty while in transit.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - SHIPMENTS
+      columns:
+        - id: shipment_id
+          name: Shipment ID
+          formula: "[SHIPMENTS/SHIPMENT_ID]"
+          role: identifier
+        - id: order_id
+          name: Order ID
+          formula: "[SHIPMENTS/ORDER_ID]"
+          hidden: true
+          role: identifier
+        - id: carrier
+          name: Carrier
+          formula: "[SHIPMENTS/CARRIER]"
+          role: dimension
+        - id: service_level
+          name: Service Level
+          description: Standard, Expedited or Overnight.
+          formula: "[SHIPMENTS/SERVICE_LEVEL]"
+          role: dimension
+        - id: fulfillment_center
+          name: Fulfillment Center
+          formula: "[SHIPMENTS/FULFILLMENT_CENTER]"
+          role: geo
+        - id: ship_date
+          name: Ship Date
+          formula: "[SHIPMENTS/SHIP_DATE]"
+          role: time
+        - id: promised_date
+          name: Promised Date
+          formula: "[SHIPMENTS/PROMISED_DATE]"
+          role: time
+        - id: delivered_date
+          name: Delivered Date
+          formula: "[SHIPMENTS/DELIVERED_DATE]"
+          role: time
+        - id: transit_days
+          name: Transit Days
+          formula: "[SHIPMENTS/TRANSIT_DAYS]"
+          role: measure
+        - id: on_time
+          name: On Time
+          description: Delivered by the promised date.
+          formula: "[SHIPMENTS/ON_TIME]"
+          role: dimension
+        - id: shipment_status
+          name: Shipment Status
+          formula: "[SHIPMENTS/SHIPMENT_STATUS]"
+          role: dimension
+        - id: shipping_charged
+          name: Shipping Charged
+          formula: "[SHIPMENTS/SHIPPING_CHARGED]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: shipping_cost
+          name: Shipping Cost
+          formula: "[SHIPMENTS/SHIPPING_COST]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+      metrics:
+        - id: on_time_rate
+          name: On-time Rate
+          formula: SafeDivide(CountIf([On Time]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          synonyms:
+            - otd
+          timeline:
+            columnId: ship_date
+            grain: month
+          goal: increase
+        - id: avg_transit_days
+          name: Avg Transit Days
+          formula: Avg([Transit Days])
+          format:
+            kind: number
+            decimals: 1
+          goal: decrease
+        - id: shipping_subsidy
+          name: Shipping Subsidy
+          formula: Sum([Shipping Cost]) - Sum([Shipping Charged])
+          format:
+            kind: currency
+            decimals: 0
+          goal: decrease
+      relationships:
+        - id: shipments_orders
+          name: Order
+          targetElementId: orders
+          keys:
+            - sourceColumnId: order_id
+              targetColumnId: order_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: returns
+      name: Returns
+      description: One row per returned order line with reason, item condition and refund.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - RETURNS
+      columns:
+        - id: return_id
+          name: Return ID
+          formula: "[RETURNS/RETURN_ID]"
+          role: identifier
+        - id: order_id
+          name: Order ID
+          formula: "[RETURNS/ORDER_ID]"
+          hidden: true
+          role: identifier
+        - id: product_id
+          name: Product ID
+          formula: "[RETURNS/PRODUCT_ID]"
+          hidden: true
+          role: identifier
+        - id: return_date
+          name: Return Date
+          formula: "[RETURNS/RETURN_DATE]"
+          role: time
+        - id: reason
+          name: Return Reason
+          formula: "[RETURNS/REASON]"
+          role: dimension
+        - id: item_condition
+          name: Item Condition
+          description: Resellable, Refurbish or Write-off.
+          formula: "[RETURNS/ITEM_CONDITION]"
+          role: dimension
+        - id: return_method
+          name: Return Method
+          formula: "[RETURNS/RETURN_METHOD]"
+          role: dimension
+        - id: refund_amount
+          name: Refund Amount
+          formula: "[RETURNS/REFUND_AMOUNT]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: restocking_fee
+          name: Restocking Fee
+          formula: "[RETURNS/RESTOCKING_FEE]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+      metrics:
+        - id: total_refunds
+          name: Total Refunds
+          formula: Sum([Refund Amount])
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: return_date
+            grain: month
+          goal: decrease
+      relationships:
+        - id: returns_orders
+          name: Order
+          targetElementId: orders
+          keys:
+            - sourceColumnId: order_id
+              targetColumnId: order_id
+          cardinality: many-to-one
+        - id: returns_products
+          name: Product
+          targetElementId: products
+          keys:
+            - sourceColumnId: product_id
+              targetColumnId: product_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: support_tickets
+      name: Support Tickets
+      description: Customer service tickets, each tied to an order. CSAT is only present when the customer answered the survey.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - SUPPORT_TICKETS
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[SUPPORT_TICKETS/TICKET_ID]"
+          role: identifier
+        - id: customer_id
+          name: Customer ID
+          formula: "[SUPPORT_TICKETS/CUSTOMER_ID]"
+          hidden: true
+          role: identifier
+        - id: order_id
+          name: Order ID
+          formula: "[SUPPORT_TICKETS/ORDER_ID]"
+          hidden: true
+          role: identifier
+        - id: opened_at
+          name: Opened At
+          formula: "[SUPPORT_TICKETS/OPENED_AT]"
+          role: time
+        - id: channel
+          name: Contact Channel
+          formula: "[SUPPORT_TICKETS/CHANNEL]"
+          role: dimension
+        - id: category
+          name: Ticket Category
+          formula: "[SUPPORT_TICKETS/CATEGORY]"
+          role: dimension
+        - id: priority
+          name: Priority
+          formula: "[SUPPORT_TICKETS/PRIORITY]"
+          role: dimension
+        - id: agent
+          name: Agent
+          formula: "[SUPPORT_TICKETS/AGENT]"
+          role: dimension
+        - id: status
+          name: Ticket Status
+          formula: "[SUPPORT_TICKETS/STATUS]"
+          role: dimension
+        - id: first_response_minutes
+          name: First Response Minutes
+          formula: "[SUPPORT_TICKETS/FIRST_RESPONSE_MINUTES]"
+          role: measure
+        - id: resolution_hours
+          name: Resolution Hours
+          formula: "[SUPPORT_TICKETS/RESOLUTION_HOURS]"
+          role: measure
+        - id: csat_score
+          name: CSAT Score
+          description: 1-5 satisfaction rating.
+          formula: "[SUPPORT_TICKETS/CSAT_SCORE]"
+          role: measure
+      metrics:
+        - id: ticket_count
+          name: Ticket Count
+          formula: CountDistinct([Ticket ID])
+          timeline:
+            columnId: opened_at
+            grain: month
+          goal: decrease
+        - id: avg_csat
+          name: Avg CSAT
+          formula: Avg([CSAT Score])
+          format:
+            kind: number
+            decimals: 2
+          synonyms:
+            - satisfaction
+          goal: increase
+        - id: median_first_response
+          name: Median First Response (min)
+          formula: Median([First Response Minutes])
+          format:
+            kind: number
+            decimals: 0
+          goal: decrease
+      relationships:
+        - id: tickets_customers
+          name: Customer
+          targetElementId: customers
+          keys:
+            - sourceColumnId: customer_id
+              targetColumnId: customer_id
+          cardinality: many-to-one
+        - id: tickets_orders
+          name: Order
+          targetElementId: orders
+          keys:
+            - sourceColumnId: order_id
+              targetColumnId: order_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: product_reviews
+      name: Product Reviews
+      description: Star ratings left after purchase.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - PRODUCT_REVIEWS
+      columns:
+        - id: review_id
+          name: Review ID
+          formula: "[PRODUCT_REVIEWS/REVIEW_ID]"
+          role: identifier
+        - id: product_id
+          name: Product ID
+          formula: "[PRODUCT_REVIEWS/PRODUCT_ID]"
+          hidden: true
+          role: identifier
+        - id: review_date
+          name: Review Date
+          formula: "[PRODUCT_REVIEWS/REVIEW_DATE]"
+          role: time
+        - id: rating
+          name: Rating
+          description: 1 to 5 stars.
+          formula: "[PRODUCT_REVIEWS/RATING]"
+          role: measure
+        - id: review_title
+          name: Review Title
+          formula: "[PRODUCT_REVIEWS/REVIEW_TITLE]"
+          role: attribute
+        - id: verified_purchase
+          name: Verified Purchase
+          formula: "[PRODUCT_REVIEWS/VERIFIED_PURCHASE]"
+          role: dimension
+        - id: helpful_votes
+          name: Helpful Votes
+          formula: "[PRODUCT_REVIEWS/HELPFUL_VOTES]"
+          role: measure
+      metrics:
+        - id: avg_rating
+          name: Avg Rating
+          formula: Avg([Rating])
+          format:
+            kind: number
+            decimals: 2
+          goal: increase
+      relationships:
+        - id: reviews_products
+          name: Product
+          targetElementId: products
+          keys:
+            - sourceColumnId: product_id
+              targetColumnId: product_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: campaigns
+      name: Campaigns
+      description: Marketing campaign performance at one row per campaign, including spend, funnel activity and attributed revenue.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - CAMPAIGNS
+      columns:
+        - id: campaign_id
+          name: Campaign ID
+          description: Unique campaign identifier
+          formula: "[CAMPAIGNS/CAMPAIGN_ID]"
+          role: identifier
+        - id: campaign_name
+          name: Campaign Name
+          description: Campaign name
+          formula: "[CAMPAIGNS/CAMPAIGN_NAME]"
+          role: attribute
+        - id: channel
+          name: Channel
+          description: Marketing channel
+          formula: "[CAMPAIGNS/CHANNEL]"
+          role: dimension
+        - id: target_category
+          name: Target Category
+          description: Product category targeted by the campaign
+          formula: "[CAMPAIGNS/TARGET_CATEGORY]"
+          role: dimension
+        - id: target_segment
+          name: Target Segment
+          description: Customer segment targeted by the campaign
+          formula: "[CAMPAIGNS/TARGET_SEGMENT]"
+          role: dimension
+        - id: start_date
+          name: Start Date
+          description: Campaign start date
+          formula: "[CAMPAIGNS/START_DATE]"
+          role: time
+        - id: end_date
+          name: End Date
+          description: Campaign end date
+          formula: "[CAMPAIGNS/END_DATE]"
+          role: time
+        - id: status
+          name: Status
+          description: Campaign lifecycle status
+          formula: "[CAMPAIGNS/STATUS]"
+          role: dimension
+        - id: budget
+          name: Budget
+          description: Approved campaign budget
+          formula: "[CAMPAIGNS/BUDGET]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: spend
+          name: Spend
+          description: Campaign spend to date
+          formula: "[CAMPAIGNS/SPEND]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: impressions
+          name: Impressions
+          description: Campaign impressions
+          formula: "[CAMPAIGNS/IMPRESSIONS]"
+          role: measure
+        - id: clicks
+          name: Clicks
+          description: Campaign clicks
+          formula: "[CAMPAIGNS/CLICKS]"
+          role: measure
+        - id: conversions
+          name: Conversions
+          description: Campaign conversions
+          formula: "[CAMPAIGNS/CONVERSIONS]"
+          role: measure
+        - id: attributed_revenue
+          name: Attributed Revenue
+          description: Revenue attributed to the campaign
+          formula: "[CAMPAIGNS/ATTRIBUTED_REVENUE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: campaign_count
+          name: Campaign Count
+          description: Number of campaigns
+          formula: CountDistinct([Campaign ID])
+        - id: total_budget
+          name: Total Budget
+          description: Total approved budget
+          formula: Sum([Budget])
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+        - id: total_spend
+          name: Total Spend
+          description: Total campaign spend
+          formula: Sum([Spend])
+          format:
+            kind: currency
+            decimals: 0
+          goal: decrease
+        - id: total_attributed_revenue
+          name: Total Attributed Revenue
+          description: Total attributed revenue
+          formula: Sum([Attributed Revenue])
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+        - id: click_through_rate
+          name: Click-through Rate
+          description: Share of impressions that became clicks
+          formula: SafeDivide(Sum([Clicks]), Sum([Impressions]))
+          format:
+            kind: percent
+            decimals: 2
+          goal: increase
+        - id: conversion_rate
+          name: Conversion Rate
+          description: Share of clicks that converted
+          formula: SafeDivide(Sum([Conversions]), Sum([Clicks]))
+          format:
+            kind: percent
+            decimals: 2
+          goal: increase
+        - id: return_on_ad_spend
+          name: Return on Ad Spend
+          description: Attributed revenue per unit of campaign spend
+          formula: SafeDivide(Sum([Attributed Revenue]), Sum([Spend]))
+          format:
+            kind: number
+            decimals: 2
+          goal: increase
+      visibleAsSource: true
+    - id: web_traffic
+      name: Web Traffic
+      description: Daily site sessions and funnel steps by traffic source and device.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - WEB_TRAFFIC
+      columns:
+        - id: date
+          name: Date
+          formula: "[WEB_TRAFFIC/DATE]"
+          role: time
+        - id: traffic_source
+          name: Traffic Source
+          formula: "[WEB_TRAFFIC/TRAFFIC_SOURCE]"
+          role: dimension
+        - id: device
+          name: Device
+          formula: "[WEB_TRAFFIC/DEVICE]"
+          role: dimension
+        - id: sessions
+          name: Sessions
+          formula: "[WEB_TRAFFIC/SESSIONS]"
+          role: measure
+        - id: users
+          name: Users
+          formula: "[WEB_TRAFFIC/USERS]"
+          role: measure
+        - id: bounces
+          name: Bounces
+          formula: "[WEB_TRAFFIC/BOUNCES]"
+          role: measure
+        - id: product_views
+          name: Product Views
+          formula: "[WEB_TRAFFIC/PRODUCT_VIEWS]"
+          role: measure
+        - id: add_to_carts
+          name: Add to Carts
+          formula: "[WEB_TRAFFIC/ADD_TO_CARTS]"
+          role: measure
+        - id: checkouts
+          name: Checkouts
+          formula: "[WEB_TRAFFIC/CHECKOUTS]"
+          role: measure
+        - id: web_orders
+          name: Web Orders
+          formula: "[WEB_TRAFFIC/WEB_ORDERS]"
+          role: measure
+        - id: web_revenue
+          name: Web Revenue
+          formula: "[WEB_TRAFFIC/WEB_REVENUE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: total_sessions
+          name: Total Sessions
+          formula: Sum([Sessions])
+          timeline:
+            columnId: date
+            grain: week
+          goal: increase
+        - id: conversion_rate
+          name: Conversion Rate
+          formula: SafeDivide(Sum([Web Orders]), Sum([Sessions]))
+          format:
+            kind: percent
+            decimals: 2
+          synonyms:
+            - cvr
+          goal: increase
+        - id: bounce_rate
+          name: Bounce Rate
+          formula: SafeDivide(Sum([Bounces]), Sum([Sessions]))
+          format:
+            kind: percent
+            decimals: 1
+          goal: decrease
+        - id: cart_abandonment
+          name: Cart Abandonment
+          formula: 1 - SafeDivide(Sum([Web Orders]), Sum([Add to Carts]))
+          format:
+            kind: percent
+            decimals: 1
+          goal: decrease
+      visibleAsSource: true
+    - id: inventory
+      name: Inventory
+      description: Point-in-time inventory snapshots by store and product, including replenishment thresholds and coverage.
+      kind: table
+      grain: store_id, product_id, snapshot_date
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - INVENTORY
+      columns:
+        - id: store_id
+          name: Store ID
+          description: Store holding the inventory
+          formula: "[INVENTORY/STORE_ID]"
+          role: identifier
+        - id: product_id
+          name: Product ID
+          description: Product being stocked
+          formula: "[INVENTORY/PRODUCT_ID]"
+          role: identifier
+        - id: snapshot_date
+          name: Snapshot Date
+          description: Date of the inventory snapshot
+          formula: "[INVENTORY/SNAPSHOT_DATE]"
+          role: time
+        - id: on_hand
+          name: On Hand
+          description: Units physically on hand
+          formula: "[INVENTORY/ON_HAND]"
+          role: measure
+        - id: on_order
+          name: On Order
+          description: Units ordered but not yet received
+          formula: "[INVENTORY/ON_ORDER]"
+          role: measure
+        - id: reorder_point
+          name: Reorder Point
+          description: Inventory level that triggers replenishment
+          formula: "[INVENTORY/REORDER_POINT]"
+          role: measure
+        - id: safety_stock
+          name: Safety Stock
+          description: Buffer units held to protect service levels
+          formula: "[INVENTORY/SAFETY_STOCK]"
+          role: measure
+        - id: avg_daily_units
+          name: Avg Daily Units
+          description: Average daily unit demand
+          formula: "[INVENTORY/AVG_DAILY_UNITS]"
+          role: measure
+        - id: days_of_supply
+          name: Days of Supply
+          description: Estimated days covered by current on-hand inventory
+          formula: "[INVENTORY/DAYS_OF_SUPPLY]"
+          format:
+            kind: number
+            decimals: 1
+          role: measure
+        - id: stock_status
+          name: Stock Status
+          description: Inventory health classification
+          formula: "[INVENTORY/STOCK_STATUS]"
+          role: dimension
+        - id: last_restock_date
+          name: Last Restock Date
+          description: Most recent replenishment date
+          formula: "[INVENTORY/LAST_RESTOCK_DATE]"
+          role: time
+      metrics:
+        - id: snapshot_count
+          name: Snapshot Count
+          description: Number of inventory snapshots
+          formula: Count()
+        - id: units_on_hand
+          name: Units On Hand
+          description: Total units on hand
+          formula: Sum([On Hand])
+        - id: units_on_order
+          name: Units On Order
+          description: Total units on order
+          formula: Sum([On Order])
+        - id: low_stock_rate
+          name: Low Stock Rate
+          description: Share of snapshots classified as low stock
+          formula: SafeDivide(CountIf([Stock Status] = "Low"), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: decrease
+      relationships:
+        - id: inventory_products
+          name: Product
+          targetElementId: products
+          keys:
+            - sourceColumnId: product_id
+              targetColumnId: product_id
+          cardinality: many-to-one
+        - id: inventory_stores
+          name: Store
+          targetElementId: stores
+          keys:
+            - sourceColumnId: store_id
+              targetColumnId: store_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: suppliers
+      name: Suppliers
+      description: Supplier master data with category coverage, lead time, quality and commercial terms.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - SUPPLIERS
+      columns:
+        - id: supplier_id
+          name: Supplier ID
+          description: Unique supplier identifier
+          formula: "[SUPPLIERS/SUPPLIER_ID]"
+          role: identifier
+        - id: supplier_name
+          name: Supplier Name
+          description: Supplier legal or trading name
+          formula: "[SUPPLIERS/SUPPLIER_NAME]"
+          role: attribute
+        - id: primary_category
+          name: Primary Category
+          description: Main product category supplied
+          formula: "[SUPPLIERS/PRIMARY_CATEGORY]"
+          role: dimension
+        - id: country
+          name: Country
+          description: Supplier country
+          formula: "[SUPPLIERS/COUNTRY]"
+          role: geo
+        - id: lead_time_days
+          name: Lead Time Days
+          description: Typical replenishment lead time
+          formula: "[SUPPLIERS/LEAD_TIME_DAYS]"
+          role: measure
+        - id: on_time_rate
+          name: On-time Rate
+          description: Supplier historical on-time delivery rate
+          formula: "[SUPPLIERS/ON_TIME_RATE]"
+          format:
+            kind: percent
+            decimals: 1
+          role: measure
+        - id: quality_score
+          name: Quality Score
+          description: Supplier quality score
+          formula: "[SUPPLIERS/QUALITY_SCORE]"
+          format:
+            kind: number
+            decimals: 1
+          role: measure
+        - id: payment_terms
+          name: Payment Terms
+          description: Contractual payment terms
+          formula: "[SUPPLIERS/PAYMENT_TERMS]"
+          role: dimension
+        - id: supplier_status
+          name: Supplier Status
+          description: Supplier lifecycle status
+          formula: "[SUPPLIERS/SUPPLIER_STATUS]"
+          role: dimension
+      metrics:
+        - id: supplier_count
+          name: Supplier Count
+          description: Number of suppliers
+          formula: CountDistinct([Supplier ID])
+        - id: avg_lead_time
+          name: Avg Lead Time Days
+          description: Average supplier lead time
+          formula: Avg([Lead Time Days])
+          format:
+            kind: number
+            decimals: 1
+          goal: decrease
+        - id: avg_on_time_rate
+          name: Avg On-time Rate
+          description: Average supplier on-time rate
+          formula: Avg([On-time Rate])
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      visibleAsSource: true
+    - id: purchase_orders
+      name: Purchase Orders
+      description: Supplier purchase orders by product and destination store, with expected and received dates and landed cost.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - PURCHASE_ORDERS
+      columns:
+        - id: po_id
+          name: PO ID
+          description: Unique purchase order identifier
+          formula: "[PURCHASE_ORDERS/PO_ID]"
+          role: identifier
+        - id: supplier_id
+          name: Supplier ID
+          description: Supplier fulfilling the purchase order
+          formula: "[PURCHASE_ORDERS/SUPPLIER_ID]"
+          role: identifier
+        - id: product_id
+          name: Product ID
+          description: Product ordered
+          formula: "[PURCHASE_ORDERS/PRODUCT_ID]"
+          role: identifier
+        - id: store_id
+          name: Store ID
+          description: Destination store
+          formula: "[PURCHASE_ORDERS/STORE_ID]"
+          role: identifier
+        - id: po_date
+          name: PO Date
+          description: Date the purchase order was placed
+          formula: "[PURCHASE_ORDERS/PO_DATE]"
+          role: time
+        - id: expected_date
+          name: Expected Date
+          description: Promised receipt date
+          formula: "[PURCHASE_ORDERS/EXPECTED_DATE]"
+          role: time
+        - id: received_date
+          name: Received Date
+          description: Actual receipt date when received
+          formula: "[PURCHASE_ORDERS/RECEIVED_DATE]"
+          role: time
+        - id: status
+          name: Status
+          description: Purchase order lifecycle status
+          formula: "[PURCHASE_ORDERS/STATUS]"
+          role: dimension
+        - id: quantity
+          name: Quantity
+          description: Units ordered
+          formula: "[PURCHASE_ORDERS/QUANTITY]"
+          role: measure
+        - id: unit_cost
+          name: Unit Cost
+          description: Cost per ordered unit
+          formula: "[PURCHASE_ORDERS/UNIT_COST]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: total_cost
+          name: Total Cost
+          description: Extended purchase order cost
+          formula: "[PURCHASE_ORDERS/TOTAL_COST]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: purchase_order_count
+          name: Purchase Order Count
+          description: Number of purchase orders
+          formula: CountDistinct([PO ID])
+        - id: ordered_units
+          name: Ordered Units
+          description: Total units ordered
+          formula: Sum([Quantity])
+        - id: purchase_spend
+          name: Purchase Spend
+          description: Total purchase order cost
+          formula: Sum([Total Cost])
+          format:
+            kind: currency
+            decimals: 0
+          goal: decrease
+        - id: receipt_on_time_rate
+          name: Receipt On-time Rate
+          description: Share of received purchase orders received by the expected date
+          formula: SafeDivide(CountIf([Received Date] <= [Expected Date]), CountIf([Status] = "Received") + CountIf([Status] = "Received Late"))
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      relationships:
+        - id: purchase_orders_suppliers
+          name: Supplier
+          targetElementId: suppliers
+          keys:
+            - sourceColumnId: supplier_id
+              targetColumnId: supplier_id
+          cardinality: many-to-one
+        - id: purchase_orders_products
+          name: Product
+          targetElementId: products
+          keys:
+            - sourceColumnId: product_id
+              targetColumnId: product_id
+          cardinality: many-to-one
+        - id: purchase_orders_stores
+          name: Store
+          targetElementId: stores
+          keys:
+            - sourceColumnId: store_id
+              targetColumnId: store_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: sales_targets
+      name: Sales Targets
+      description: Monthly revenue, order and margin targets by region.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - RETAIL
+          - SALES_TARGETS
+      columns:
+        - id: month
+          name: Target Month
+          formula: "[SALES_TARGETS/MONTH]"
+          role: time
+        - id: region
+          name: Region
+          formula: "[SALES_TARGETS/REGION]"
+          role: geo
+        - id: revenue_target
+          name: Revenue Target
+          formula: "[SALES_TARGETS/REVENUE_TARGET]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: orders_target
+          name: Orders Target
+          formula: "[SALES_TARGETS/ORDERS_TARGET]"
+          role: measure
+        - id: margin_target
+          name: Margin Target
+          formula: "[SALES_TARGETS/MARGIN_TARGET]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      visibleAsSource: true
+    - id: sales_reps
+      name: Sales Reps
+      description: Sales representative directory with organization, territory, quota and employment status.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - SALES_REPS
+      columns:
+        - id: rep_id
+          name: Rep ID
+          description: Unique sales representative identifier
+          formula: "[SALES_REPS/REP_ID]"
+          role: identifier
+        - id: rep_name
+          name: Rep Name
+          description: Sales representative name
+          formula: "[SALES_REPS/REP_NAME]"
+          role: attribute
+        - id: email
+          name: Email
+          description: Sales representative email
+          formula: "[SALES_REPS/EMAIL]"
+          role: attribute
+        - id: region
+          name: Region
+          description: Sales territory region
+          formula: "[SALES_REPS/REGION]"
+          role: geo
+        - id: team
+          name: Team
+          description: Sales team
+          formula: "[SALES_REPS/TEAM]"
+          role: dimension
+        - id: title
+          name: Title
+          description: Job title
+          formula: "[SALES_REPS/TITLE]"
+          role: dimension
+        - id: manager
+          name: Manager
+          description: Direct manager
+          formula: "[SALES_REPS/MANAGER]"
+          role: attribute
+        - id: hire_date
+          name: Hire Date
+          description: Employment start date
+          formula: "[SALES_REPS/HIRE_DATE]"
+          role: time
+        - id: annual_quota
+          name: Annual Quota
+          description: Annual sales quota
+          formula: "[SALES_REPS/ANNUAL_QUOTA]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: status
+          name: Status
+          description: Employment status
+          formula: "[SALES_REPS/STATUS]"
+          role: dimension
+      metrics:
+        - id: rep_count
+          name: Rep Count
+          description: Number of sales representatives
+          formula: CountDistinct([Rep ID])
+        - id: total_annual_quota
+          name: Total Annual Quota
+          description: Total annual quota
+          formula: Sum([Annual Quota])
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+      visibleAsSource: true
+    - id: calendar
+      name: Calendar
+      description: Conformed date dimension with calendar, fiscal, weekend, holiday and peak-season attributes.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - CALENDAR
+      columns:
+        - id: date
+          name: Date
+          description: Calendar date used to align operational facts
+          formula: "[CALENDAR/DATE]"
+          role: time
+        - id: year
+          name: Year
+          description: Calendar year
+          formula: "[CALENDAR/YEAR]"
+          role: dimension
+        - id: quarter
+          name: Quarter
+          description: Calendar quarter number
+          formula: "[CALENDAR/QUARTER]"
+          role: dimension
+        - id: month
+          name: Month
+          description: Calendar month number
+          formula: "[CALENDAR/MONTH]"
+          role: dimension
+        - id: month_name
+          name: Month Name
+          description: Calendar month name
+          formula: "[CALENDAR/MONTH_NAME]"
+          role: dimension
+        - id: week_start
+          name: Week Start
+          description: First date of the reporting week
+          formula: "[CALENDAR/WEEK_START]"
+          role: time
+        - id: week_of_year
+          name: Week of Year
+          description: ISO-style week number
+          formula: "[CALENDAR/WEEK_OF_YEAR]"
+          role: dimension
+        - id: day_name
+          name: Day Name
+          description: Name of the day of week
+          formula: "[CALENDAR/DAY_NAME]"
+          role: dimension
+        - id: is_weekend
+          name: Is Weekend
+          description: Whether the date falls on Saturday or Sunday
+          formula: "[CALENDAR/IS_WEEKEND]"
+          role: dimension
+        - id: fiscal_year
+          name: Fiscal Year
+          description: Fiscal year assigned to the date
+          formula: "[CALENDAR/FISCAL_YEAR]"
+          role: dimension
+        - id: fiscal_quarter
+          name: Fiscal Quarter
+          description: Fiscal quarter assigned to the date
+          formula: "[CALENDAR/FISCAL_QUARTER]"
+          role: dimension
+        - id: holiday
+          name: Holiday
+          description: Holiday name when applicable
+          formula: "[CALENDAR/HOLIDAY]"
+          role: dimension
+        - id: is_peak_season
+          name: Is Peak Season
+          description: Whether the date is in a designated peak retail season
+          formula: "[CALENDAR/IS_PEAK_SEASON]"
+          role: dimension
+      metrics:
+        - id: date_count
+          name: Date Count
+          description: Number of distinct calendar dates
+          formula: CountDistinct([Date])
+      visibleAsSource: true
+    - id: regions
+      name: Regions
+      description: Region reference data with business descriptions and accountable managers.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - RETAIL
+          - REGIONS
+      columns:
+        - id: region
+          name: Region
+          description: Region name
+          formula: "[REGIONS/REGION]"
+          role: geo
+        - id: region_description
+          name: Region Description
+          description: Business description of the region
+          formula: "[REGIONS/REGION_DESCRIPTION]"
+          role: attribute
+        - id: region_manager
+          name: Region Manager
+          description: Manager accountable for the region
+          formula: "[REGIONS/REGION_MANAGER]"
+          role: attribute
+      metrics:
+        - id: region_count
+          name: Region Count
+          description: Number of regions
+          formula: CountDistinct([Region])
+      visibleAsSource: true
+  verifiedQueries:
+    - question: Which marketing channels generate the most attributed revenue and the strongest return on ad spend?
+      elementId: campaigns
+      dimensions:
+        - "[Channel]"
+      measures:
+        - Total Spend
+        - Total Attributed Revenue
+        - Return on Ad Spend
+        - Conversion Rate
+      notes: Compares campaign investment, revenue impact, efficiency, and funnel performance across marketing channels.
+      verifiedBy: priya@meridian.dev
+      verifiedAt: 2026-10-06
+    - question: Which product categories and sales channels have the highest return rates and refund exposure?
+      elementId: orders
+      dimensions:
+        - "[Product/Category]"
+        - "[Channel]"
+      measures:
+        - Return Rate
+        - Total Revenue
+        - Order Count
+      verifiedBy: priya@meridian.dev
+      verifiedAt: 2026-10-06

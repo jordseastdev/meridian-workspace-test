@@ -1,0 +1,604 @@
+workbookId: revenue-action-hub
+name: Revenue Action Hub
+description: Prioritize collections, adoption and pipeline, assign next steps and capture evidence of business outcomes.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: base
+      name: Account signals
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: revenue-action-model
+        elementId: accounts
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: mrr
+          name: Active MRR
+          formula: "[Active MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: past_due
+          name: Past Due Balance
+          formula: "[Past Due Balance]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: pipeline
+          name: Open Pipeline
+          formula: "[Open Pipeline]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: adopted
+          name: Adopted Features
+          formula: "[Adopted Features]"
+        - id: tracked
+          name: Tracked Features
+          formula: "[Tracked Features]"
+        - id: lane
+          name: Action Lane
+          formula: "[Action Lane]"
+        - id: invoice_date
+          name: Latest Invoice
+          formula: "[Latest Invoice]"
+        - id: last_use
+          name: Last Feature Use
+          formula: "[Last Feature Use]"
+        - id: list_price
+          name: Monthly Seat List Price
+          formula: "[Monthly Seat List Price]"
+          format:
+            kind: currency
+            decimals: 2
+    - id: region_filter
+      kind: control
+      controlId: region
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: base
+          columnId: region
+    - id: owner_filter
+      kind: control
+      controlId: account_owner
+      controlType: list
+      label: Account owner
+      filters:
+        - source:
+            kind: table
+            elementId: base
+          columnId: owner
+    - id: intro
+      kind: text
+      body: |
+        ## Revenue Action Hub
+        **Collect overdue cash. Improve adoption. Advance real pipeline.** Use the Action Desk to turn signals into owned next steps.
+        Source snapshots, not live guarantees. MRR, invoice balances and pipeline are different measures—never add them together. Adoption is based on tracked features, not plan entitlement.
+    - id: mrr
+      name: Active MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: v
+          name: Active MRR
+          formula: "[Total Active MRR]"
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: overdue
+      name: Past due balance
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: v
+          name: Past due balance
+          formula: "[Total Past Due]"
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: pipeline
+      name: Open pipeline
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: v
+          name: Open pipeline
+          formula: "[Total Open Pipeline]"
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: adoption
+      name: Tracked adoption
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: v
+          name: Tracked adoption
+          formula: "[Tracked Adoption Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: collections
+      name: Largest past-due balances
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: balance
+          name: Past due balance
+          formula: Sum([Past Due Balance])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: account
+        sort:
+          by: balance
+          direction: descending
+      yAxis:
+        columnIds:
+          - balance
+      color:
+        by: single
+        value: "#c2410c"
+      orientation: horizontal
+      limit: 10
+    - id: growth
+      name: Largest open pipelines
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: amount
+          name: Open pipeline
+          formula: Sum([Open Pipeline])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: account
+        sort:
+          by: amount
+          direction: descending
+      yAxis:
+        columnIds:
+          - amount
+      orientation: horizontal
+      limit: 10
+    - id: freshness
+      name: Data coverage — latest source dates
+      kind: table
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: invoice
+          name: Latest invoice in selection
+          formula: Max([Latest Invoice])
+        - id: use
+          name: Latest feature use in selection
+          formula: Max([Last Feature Use])
+        - id: accounts
+          name: Accounts in selection
+          formula: CountDistinct([Account ID])
+    - id: work
+      name: Account execution records
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: base
+        connectionId: default
+      columns:
+        - id: account_id
+          name: Account ID
+          key: account_id
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: lane
+          name: Action Lane
+          formula: "[Action Lane]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: mrr
+          name: Active MRR
+          formula: "[Active MRR]"
+        - id: past_due
+          name: Past Due Balance
+          formula: "[Past Due Balance]"
+        - id: pipeline
+          name: Open Pipeline
+          formula: "[Open Pipeline]"
+        - id: adopted
+          name: Adopted Features
+          formula: "[Adopted Features]"
+        - id: tracked
+          name: Tracked Features
+          formula: "[Tracked Features]"
+        - id: action_owner
+          name: Action Owner
+          type: text
+        - id: next_step
+          name: Next Step
+          type: text
+          multiline: true
+        - id: due_date
+          name: Follow Up
+          type: date
+        - id: work_status
+          name: Work Status
+          type: text
+          values:
+            - Planned
+            - In progress
+            - Blocked
+            - Completed
+        - id: evidence
+          name: Outcome Evidence
+          type: text
+          multiline: true
+        - id: cash_recovered
+          name: Reported Cash Recovered
+          type: number
+          min: 0
+        - id: added_mrr
+          name: Reported Added MRR
+          type: number
+          min: 0
+        - id: outcome_date
+          name: Outcome Date
+          type: date
+    - id: lane_filter
+      kind: control
+      controlId: lane
+      controlType: list
+      label: Action lane
+      filters:
+        - source:
+            kind: table
+            elementId: work
+          columnId: lane
+    - id: status_filter
+      kind: control
+      controlId: work_status
+      controlType: list
+      label: Work status
+      filters:
+        - source:
+            kind: table
+            elementId: work
+          columnId: work_status
+    - id: desk_help
+      kind: text
+      body: |
+        ## Own the next step
+        Select an account to assign an action, set a follow-up date and save outcome evidence. Start with **Collect overdue**, then **Improve adoption**, then **Advance pipeline**.
+        Adoption below 30% is a triage flag, not a churn prediction. Reported outcomes are manual and unverified; completed actions with evidence count below. Record each outcome once and do not treat pipeline as realized revenue.
+    - id: completed
+      name: Completed actions with evidence
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: work
+      columns:
+        - id: v
+          name: Completed actions
+          formula: CountIf([Work Status] = "Completed" and Len(Coalesce([Outcome Evidence], "")) > 0)
+      value:
+        columnId: v
+    - id: cash
+      name: Reported cash recovered — completed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: work
+      columns:
+        - id: v
+          name: Reported cash recovered
+          formula: Coalesce(SumIf([Reported Cash Recovered], [Work Status] = "Completed" and Len(Coalesce([Outcome Evidence], "")) > 0), 0)
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: new_mrr
+      name: Reported added MRR — completed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: work
+      columns:
+        - id: v
+          name: Reported added MRR
+          formula: Coalesce(SumIf([Reported Added MRR], [Work Status] = "Completed" and Len(Coalesce([Outcome Evidence], "")) > 0), 0)
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: v
+    - id: work_queue
+      name: Account action desk — select a row to work
+      kind: table
+      actions:
+        - id: open_account
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_account
+              value:
+                type: selection
+                columnId: account_id
+            - effect: open-overlay
+              overlayId: account_drawer
+      source:
+        kind: table
+        elementId: work
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: lane
+          name: Action Lane
+          formula: "[Action Lane]"
+        - id: past_due
+          name: Past Due Balance
+          formula: "[Past Due Balance]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: mrr
+          name: Active MRR
+          formula: "[Active MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: pipeline
+          name: Open Pipeline
+          formula: "[Open Pipeline]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: owner
+          name: Action Owner
+          formula: "[Action Owner]"
+        - id: status
+          name: Work Status
+          formula: Coalesce([Work Status], "Not started")
+        - id: next_step
+          name: Next Step
+          formula: "[Next Step]"
+        - id: follow_up
+          name: Follow Up
+          formula: "[Follow Up]"
+        - id: evidence
+          name: Outcome Evidence
+          formula: "[Outcome Evidence]"
+      sort:
+        - columnId: past_due
+          direction: descending
+        - columnId: pipeline
+          direction: descending
+    - id: selected_account
+      kind: control
+      controlId: selected_account
+      controlType: text
+    - id: account_record
+      name: Account context
+      kind: table
+      source:
+        kind: table
+        elementId: work
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: lane
+          name: Action Lane
+          formula: "[Action Lane]"
+        - id: mrr
+          name: Active MRR
+          formula: "[Active MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: past_due
+          name: Past Due Balance
+          formula: "[Past Due Balance]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: pipeline
+          name: Open Pipeline
+          formula: "[Open Pipeline]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: adoption
+          name: Tracked adoption
+          formula: SafeDivide([Adopted Features], [Tracked Features])
+          format:
+            kind: percent
+            decimals: 1
+      filters:
+        - id: picked
+          kind: formula
+          formula: "[Account ID] = [selected_account]"
+      display: record
+      card:
+        title: account
+        subtitle: account_id
+        fields:
+          - owner
+          - csm
+          - plan
+          - lane
+          - mrr
+          - past_due
+          - pipeline
+          - adoption
+    - id: edit_action
+      kind: form
+      title: Action and outcome evidence
+      tableElementId: work
+      fields:
+        - action_owner
+        - next_step
+        - due_date
+        - work_status
+        - evidence
+        - cash_recovered
+        - added_mrr
+        - outcome_date
+      submitText: Save action plan
+      editRow:
+        control: selected_account
+        columnId: account_id
+  pages:
+    - id: overview
+      name: Business Pulse
+      elements:
+        - region_filter
+        - owner_filter
+        - intro
+        - mrr
+        - overdue
+        - pipeline
+        - adoption
+        - collections
+        - growth
+        - freshness
+    - id: execution
+      name: Action Desk
+      elements:
+        - region_filter
+        - owner_filter
+        - lane_filter
+        - status_filter
+        - desk_help
+        - completed
+        - cash
+        - new_mrr
+        - work_queue
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - base
+        - work
+        - selected_account
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="region_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="owner_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="intro" gridColumn="1 / 25" gridRow="3 / 5"/>
+      <Element elementId="mrr" gridColumn="1 / 7" gridRow="5 / 9"/>
+      <Element elementId="overdue" gridColumn="7 / 13" gridRow="5 / 9"/>
+      <Element elementId="pipeline" gridColumn="13 / 19" gridRow="5 / 9"/>
+      <Element elementId="adoption" gridColumn="19 / 25" gridRow="5 / 9"/>
+      <Element elementId="collections" gridColumn="1 / 13" gridRow="9 / 18"/>
+      <Element elementId="growth" gridColumn="13 / 25" gridRow="9 / 18"/>
+      <Element elementId="freshness" gridColumn="1 / 25" gridRow="18 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="execution">
+      <Element elementId="region_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="owner_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="lane_filter" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="status_filter" gridColumn="19 / 25" gridRow="1 / 3"/>
+      <Element elementId="desk_help" gridColumn="1 / 25" gridRow="3 / 5"/>
+      <Element elementId="completed" gridColumn="1 / 9" gridRow="5 / 9"/>
+      <Element elementId="cash" gridColumn="9 / 17" gridRow="5 / 9"/>
+      <Element elementId="new_mrr" gridColumn="17 / 25" gridRow="5 / 9"/>
+      <Element elementId="work_queue" gridColumn="1 / 25" gridRow="9 / 21"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="base" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="selected_account" gridColumn="1 / 7" gridRow="25 / 27"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="account_drawer">
+      <Element elementId="account_record" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="edit_action" gridColumn="1 / 25" gridRow="13 / 21"/>
+    </Overlay>
+  overlays:
+    - id: account_drawer
+      kind: drawer
+      title: Account action plan
+      size: large
+      elements:
+        - account_record
+        - edit_action
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

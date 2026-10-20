@@ -1,0 +1,7 @@
+genaiAppId: daily-store-briefing
+name: Daily Store Briefing
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: retail-daily-briefing-data
+  prompt: Keep the existing Daily Store Briefing screen and behavior unchanged. Update its revenue trend to consume the revenue_trend table ordered newest day first with the limit, then reverse the displayed series for the chart so it reads chronologically and always ends on the latest available day.

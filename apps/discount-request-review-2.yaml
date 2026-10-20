@@ -1,0 +1,224 @@
+workbookId: discount-request-review-2
+name: Discount Request Review
+description: Managers review open discount requests and record an approval or rejection with a note.
+folderId: retail
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: deals
+      name: Discount Requests
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Request ID
+          formula: "[Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: submitted_discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age (days)
+          formula: "[Age Days]"
+      filters:
+        - id: open_only
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Open
+      sort:
+        - columnId: age_days
+          direction: descending
+    - id: queue_table
+      name: Open Discount Requests
+      kind: table
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Request ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: status
+          name: Status
+        - id: list_amount
+          name: List Amount
+        - id: submitted_discount
+          name: Submitted Discount
+        - id: age_days
+          name: Age (days)
+    - id: review_note
+      name: Recorded Decisions
+      description: Append-only record of a manager decision and its note for a discount request.
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Request ID
+          type: text
+          required: true
+        - id: decision
+          name: Decision
+          type: text
+          values:
+            - Approved
+            - Rejected
+          required: true
+        - id: note
+          name: Manager Note
+          type: text
+          multiline: true
+          required: true
+        - id: manager
+          name: Manager
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: decided_at
+          name: Decided At
+          type: date
+          default:
+            kind: today
+          readOnly: true
+    - id: decision_controls
+      kind: control
+      controlId: selected_request
+      controlType: text
+      label: Request ID
+      placeholder: Select a request in the queue to copy its ID here
+    - id: decision_note
+      kind: control
+      controlId: manager_note
+      controlType: text-area
+      label: Decision note
+      placeholder: Add rationale for the decision
+    - id: approve
+      kind: button
+      actions:
+        - id: approve_request
+          trigger: on-click
+          effects:
+            - effect: insert-rows
+              tableElementId: review_note
+              values:
+                deal_id:
+                  type: control
+                  control: selected_request
+                decision:
+                  type: constant
+                  value: Approved
+                note:
+                  type: control
+                  control: manager_note
+                manager:
+                  type: user
+                  field: email
+                decided_at:
+                  type: now
+            - effect: notify
+              message: Approval recorded.
+              level: info
+            - effect: refresh
+      text: Approve selected request
+      appearance: filled
+    - id: reject
+      kind: button
+      actions:
+        - id: reject_request
+          trigger: on-click
+          effects:
+            - effect: insert-rows
+              tableElementId: review_note
+              values:
+                deal_id:
+                  type: control
+                  control: selected_request
+                decision:
+                  type: constant
+                  value: Rejected
+                note:
+                  type: control
+                  control: manager_note
+                manager:
+                  type: user
+                  field: email
+                decided_at:
+                  type: now
+            - effect: notify
+              message: Rejection recorded.
+              level: info
+            - effect: refresh
+      text: Reject selected request
+      appearance: danger
+  pages:
+    - id: queue
+      name: Request Queue
+      elements:
+        - queue_table
+        - review_note
+        - decision_controls
+        - decision_note
+        - approve
+        - reject
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - deals
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="queue">
+      <Element elementId="queue_table" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="review_note" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="decision_controls" gridColumn="1 / 7" gridRow="25 / 27"/>
+      <Element elementId="decision_note" gridColumn="7 / 13" gridRow="25 / 27"/>
+      <Element elementId="approve" gridColumn="13 / 17" gridRow="25 / 27"/>
+      <Element elementId="reject" gridColumn="17 / 21" gridRow="25 / 27"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="deals" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

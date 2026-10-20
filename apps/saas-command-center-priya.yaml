@@ -1,0 +1,639 @@
+workbookId: saas-command-center-priya
+name: SaaS Command Center
+description: An executive operating system for revenue, growth, adoption, and account-level customer intelligence.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: base_accounts
+      name: Accounts
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-core-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: employee_count
+          name: Employee Count
+          formula: "[Employee Count]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: acquisition_source
+          name: Acquisition Source
+          formula: "[Acquisition Source]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: converted_date
+          name: Converted Date
+          formula: "[Converted Date]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: starting_plan
+          name: Starting Plan
+          formula: "[Starting Plan]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: plan_changed_date
+          name: Plan Changed Date
+          formula: "[Plan Changed Date]"
+        - id: billing_period
+          name: Billing Period
+          formula: "[Billing Period]"
+        - id: contract_discount
+          name: Contract Discount
+          formula: "[Contract Discount]"
+          format:
+            kind: percent
+            decimals: 1
+        - id: starting_seats
+          name: Starting Seats
+          formula: "[Starting Seats]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: total_monthly_active_users
+          name: Total Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: feature_category_count
+          name: Feature Category Count
+          formula: "[Feature Category Count]"
+        - id: latest_feature_used_date
+          name: Latest Feature Used Date
+          formula: "[Latest Feature Used Date]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+        - id: total_billed_seats
+          name: Total Billed Seats
+          formula: "[Total Billed Seats]"
+        - id: total_amount
+          name: Total Amount
+          formula: "[Total Amount]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: total_tax
+          name: Total Tax
+          formula: "[Total Tax]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: paid_invoice_count
+          name: Paid Invoice Count
+          formula: "[Paid Invoice Count]"
+        - id: latest_invoice_date
+          name: Latest Invoice Date
+          formula: "[Latest Invoice Date]"
+        - id: latest_paid_date
+          name: Latest Paid Date
+          formula: "[Latest Paid Date]"
+      limit: 5000
+    - id: filter_region
+      name: Region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: region
+    - id: filter_status
+      name: Status
+      kind: control
+      controlId: status_filter
+      controlType: segmented
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: status
+    - id: filter_plan
+      name: Current Plan
+      kind: control
+      controlId: plan_filter
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: current_plan
+    - id: ask_copilot_exec
+      name: Ask SaaS Strategist
+      kind: button
+      actions:
+        - id: open_strategist_exec
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: strategist_drawer
+      text: Ask SaaS Strategist
+      appearance: filled
+      icon: sparkles
+    - id: ask_copilot_growth
+      name: Ask SaaS Strategist
+      kind: button
+      actions:
+        - id: open_strategist_growth
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: strategist_drawer
+      text: Ask SaaS Strategist
+      appearance: filled
+      icon: sparkles
+    - id: ask_copilot_accounts
+      name: Ask SaaS Strategist
+      kind: button
+      actions:
+        - id: open_strategist_accounts
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: strategist_drawer
+      text: Ask SaaS Strategist
+      appearance: filled
+      icon: sparkles
+    - id: strategist_agent
+      name: SaaS Strategist
+      kind: agent
+      agentId: saas-strategist-priya
+      placeholder: Ask about growth, revenue concentration, adoption, churn, or which accounts need attention.
+      height: 720
+    - id: kpi_revenue
+      name: Total Billed Revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_accounts
+      name: Total Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Account Count
+          formula: Count()
+      value:
+        columnId: value
+    - id: kpi_active
+      name: Active Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Active Accounts
+          formula: CountIf([Status] = "Active")
+      value:
+        columnId: value
+    - id: kpi_adoption
+      name: Feature Adoption
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Average Feature Adoption Rate
+          formula: SafeDivide(Sum([Adopted Feature Count]), Sum([Feature Record Count]))
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: revenue_by_plan
+      name: Revenue by Plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: revenue
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: plan
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: scale
+        column: revenue
+        scheme: blues
+      fill: gradient
+      limit: 10
+    - id: revenue_by_region
+      name: Revenue by Region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: revenue
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: region
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: scale
+        column: revenue
+        scheme: teals
+      fill: gradient
+      limit: 10
+    - id: status_mix
+      name: Account Mix
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: accounts
+          name: Accounts
+          formula: Count()
+      color:
+        by: category
+        column: status
+        scheme: ocean
+      value:
+        columnId: accounts
+      category:
+        columnId: status
+      legend:
+        position: bottom
+    - id: signup_trend
+      name: Signup Momentum
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: month
+          name: Signup Month
+          formula: DateTrunc("month", [Signup Date])
+        - id: accounts
+          name: New Accounts
+          formula: Count()
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - accounts
+      color:
+        by: single
+        value: "#38bdf8"
+      fill: gradient
+    - id: revenue_by_source
+      name: Revenue by Acquisition Source
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: source
+          name: Acquisition Source
+          formula: "[Acquisition Source]"
+        - id: revenue
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: source
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#0ea5e9"
+      fill: gradient
+      orientation: horizontal
+      limit: 10
+    - id: adoption_by_plan
+      name: Adoption by Plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: adoption
+          name: Feature Adoption Rate
+          formula: SafeDivide(Sum([Adopted Feature Count]), Sum([Feature Record Count]))
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: plan
+        sort:
+          by: adoption
+          direction: descending
+      yAxis:
+        columnIds:
+          - adoption
+      color:
+        by: scale
+        column: adoption
+        scheme: red-green
+      limit: 10
+    - id: billing_mix
+      name: Billing Period Mix
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: period
+          name: Billing Period
+          formula: "[Billing Period]"
+        - id: accounts
+          name: Accounts
+          formula: Count()
+      color:
+        by: category
+        column: period
+        scheme: tableau
+      value:
+        columnId: accounts
+      category:
+        columnId: period
+      legend:
+        position: bottom
+    - id: owner_performance
+      name: Top Account Owners by Revenue
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: revenue
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: owner
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#14b8a6"
+      orientation: horizontal
+      limit: 10
+    - id: csm_performance
+      name: Top CSMs by Revenue
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: revenue
+          name: Total Billed Revenue
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: csm
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+      color:
+        by: single
+        value: "#8b5cf6"
+      orientation: horizontal
+      limit: 10
+    - id: account_watchlist
+      name: Account Intelligence Table
+      kind: table
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: account
+          name: Account
+          formula: "[Account Name]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: plan
+          name: Plan
+          formula: "[Current Plan]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: revenue
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: adoption
+          name: Adoption Rate
+          formula: SafeDivide([Adopted Feature Count], [Feature Record Count])
+          format:
+            kind: percent
+            decimals: 1
+        - id: mau
+          name: Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: latest_use
+          name: Latest Feature Use
+          formula: "[Latest Feature Used Date]"
+        - id: days_quiet
+          name: Days Since Feature Use
+          formula: DateDiff("day", [Latest Feature Used Date], Today())
+        - id: paid_rate
+          name: Paid Invoice Rate
+          formula: SafeDivide([Paid Invoice Count], [Invoice Count])
+          format:
+            kind: percent
+            decimals: 1
+      sort:
+        - columnId: revenue
+          direction: descending
+      limit: 250
+  pages:
+    - id: executive
+      name: Executive Pulse
+      elements:
+        - filter_region
+        - filter_status
+        - filter_plan
+        - ask_copilot_exec
+        - kpi_revenue
+        - kpi_accounts
+        - kpi_active
+        - kpi_adoption
+        - revenue_by_plan
+        - revenue_by_region
+        - status_mix
+        - signup_trend
+    - id: growth
+      name: Growth & Segments
+      elements:
+        - ask_copilot_growth
+        - revenue_by_source
+        - adoption_by_plan
+        - billing_mix
+        - owner_performance
+        - csm_performance
+    - id: accounts
+      name: Account Intelligence
+      elements:
+        - ask_copilot_accounts
+        - id: account_watchlist
+          height: 16
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - base_accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="executive">
+      <Element elementId="filter_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="filter_status" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="filter_plan" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ask_copilot_exec" gridColumn="19 / 23" gridRow="1 / 3"/>
+      <Element elementId="kpi_revenue" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_accounts" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_active" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_adoption" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="revenue_by_plan" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="revenue_by_region" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="status_mix" gridColumn="1 / 13" gridRow="16 / 25"/>
+      <Element elementId="signup_trend" gridColumn="13 / 25" gridRow="16 / 25"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="growth">
+      <Element elementId="ask_copilot_growth" gridColumn="1 / 5" gridRow="1 / 3"/>
+      <Element elementId="revenue_by_source" gridColumn="1 / 13" gridRow="3 / 12"/>
+      <Element elementId="adoption_by_plan" gridColumn="13 / 25" gridRow="3 / 12"/>
+      <Element elementId="billing_mix" gridColumn="1 / 13" gridRow="12 / 21"/>
+      <Element elementId="owner_performance" gridColumn="13 / 25" gridRow="12 / 21"/>
+      <Element elementId="csm_performance" gridColumn="1 / 25" gridRow="21 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="accounts">
+      <Element elementId="ask_copilot_accounts" gridColumn="1 / 5" gridRow="1 / 3"/>
+      <Element elementId="account_watchlist" gridColumn="1 / 25" gridRow="3 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="base_accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="strategist_drawer">
+      <Element elementId="strategist_agent" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: strategist_drawer
+      kind: drawer
+      title: SaaS Strategist
+      size: large
+      elements:
+        - strategist_agent
+  settings:
+    theme:
+      preset: midnight
+      palette: ocean

@@ -1,0 +1,1291 @@
+workbookId: saas-growth-command-center-2
+name: SaaS Growth Command Center
+description: Executive command center for recurring revenue growth, retention, customer health, billing, and product adoption.
+folderId: saas
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: base_mrr
+      name: MRR Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: mrr_monthly
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account/Account Name]"
+        - id: region
+          name: Region
+          formula: "[Account/Region]"
+        - id: industry
+          name: Industry
+          formula: "[Account/Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Account/Company Size]"
+        - id: plan
+          name: Plan
+          formula: "[Plan Name]"
+        - id: billing_period
+          name: Billing Period
+          formula: "[Billing Period]"
+        - id: seats
+          name: Seats
+          formula: "[Seats]"
+          format:
+            kind: number
+            decimals: 0
+        - id: mrr
+          name: MRR
+          formula: "[MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: arr
+          name: ARR
+          formula: "[ARR]"
+          format:
+            kind: currency
+            decimals: 0
+      limit: 500
+    - id: base_movements
+      name: Movements Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: mrr_movements
+      columns:
+        - id: movement_id
+          name: Movement ID
+          formula: "[Movement ID]"
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account/Account Name]"
+        - id: region
+          name: Region
+          formula: "[Account/Region]"
+        - id: movement_type
+          name: Movement Type
+          formula: "[Movement Type]"
+        - id: plan_before
+          name: Plan Before
+          formula: "[Plan Before]"
+        - id: plan_after
+          name: Plan After
+          formula: "[Plan After]"
+        - id: mrr_before
+          name: MRR Before
+          formula: "[MRR Before]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: mrr_after
+          name: MRR After
+          formula: "[MRR After]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: mrr_change
+          name: MRR Change
+          formula: "[MRR Change]"
+          format:
+            kind: currency
+            decimals: 0
+      limit: 500
+    - id: base_accounts
+      name: Accounts Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: accounts
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billing_period
+          name: Billing Period
+          formula: "[Billing Period]"
+        - id: status
+          name: Account Status
+          formula: "[Account Status]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: Customer Success Manager
+          formula: "[Customer Success Manager]"
+        - id: starting_seats
+          name: Starting Seats
+          formula: "[Starting Seats]"
+          format:
+            kind: number
+            decimals: 0
+        - id: contract_discount
+          name: Contract Discount
+          formula: "[Contract Discount]"
+          format:
+            kind: percent
+            decimals: 1
+      limit: 500
+    - id: base_invoices
+      name: Invoices Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: invoices
+      columns:
+        - id: invoice_id
+          name: Invoice ID
+          formula: "[Invoice ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account/Account Name]"
+        - id: invoice_date
+          name: Invoice Date
+          formula: "[Invoice Date]"
+        - id: due_date
+          name: Due Date
+          formula: "[Due Date]"
+        - id: plan
+          name: Plan
+          formula: "[Plan Name]"
+        - id: payment_method
+          name: Payment Method
+          formula: "[Payment Method]"
+        - id: invoice_total
+          name: Invoice Total
+          formula: "[Invoice Total]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: paid_date
+          name: Paid Date
+          formula: "[Paid Date]"
+        - id: invoice_status
+          name: Invoice Status
+          formula: "[Invoice Status]"
+      limit: 500
+    - id: base_features
+      name: Feature Adoption Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: feature_adoption
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account/Account Name]"
+        - id: feature
+          name: Feature
+          formula: "[Feature]"
+        - id: feature_category
+          name: Feature Category
+          formula: "[Feature Category]"
+        - id: min_plan
+          name: Minimum Plan
+          formula: "[Minimum Plan]"
+        - id: adopted
+          name: Adopted
+          formula: "[Adopted]"
+        - id: first_used_date
+          name: First Used Date
+          formula: "[First Used Date]"
+        - id: last_used_date
+          name: Last Used Date
+          formula: "[Last Used Date]"
+        - id: monthly_active_users
+          name: Monthly Active Users
+          formula: "[Monthly Active Users]"
+          format:
+            kind: number
+            decimals: 0
+      limit: 500
+    - id: ov_date
+      name: Reporting period
+      kind: control
+      controlId: ov_date
+      controlType: date-range
+      value:
+        start: 2024-10-01
+        end: 2025-09-01
+      filters:
+        - source:
+            kind: table
+            elementId: base_mrr
+          columnId: month
+    - id: ov_plan
+      name: Plan
+      kind: control
+      controlId: ov_plan
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_mrr
+          columnId: plan
+    - id: ov_region
+      name: Region
+      kind: control
+      controlId: ov_region
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_mrr
+          columnId: region
+    - id: kpi_mrr
+      name: Average Monthly MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: value
+          name: Average Monthly MRR
+          formula: SafeDivide(Sum([MRR]), CountDistinct([Month]))
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: latest vs prior month
+      trend:
+        columnId: period
+    - id: kpi_arr
+      name: Average Monthly ARR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: value
+          name: Average Monthly ARR
+          formula: SafeDivide(Sum([ARR]), CountDistinct([Month]))
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: latest vs prior month
+      trend:
+        columnId: period
+    - id: kpi_rev_accounts
+      name: Average Monthly Revenue Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: value
+          name: Average Monthly Revenue Accounts
+          formula: SafeDivide(Count(), CountDistinct([Month]))
+          format:
+            kind: number
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: latest vs prior month
+      trend:
+        columnId: period
+    - id: kpi_arpa
+      name: Average Account MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: value
+          name: Average Account MRR
+          formula: SafeDivide(Sum([MRR]), Count())
+          format:
+            kind: currency
+            decimals: 0
+        - id: period
+          name: Month
+          formula: "[Month]"
+      value:
+        columnId: value
+      comparison:
+        period: previous-period
+        label: latest vs prior month
+      trend:
+        columnId: period
+    - id: mrr_trend
+      name: MRR Trend
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: mrr
+          name: Total MRR
+          formula: Sum([MRR])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - mrr
+      color:
+        by: single
+        value: "#38bdf8"
+    - id: mrr_by_plan
+      name: MRR by Plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: mrr
+          name: MRR
+          formula: Sum([MRR])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: plan
+        sort:
+          by: mrr
+          direction: descending
+      yAxis:
+        columnIds:
+          - mrr
+      color:
+        by: single
+        value: "#22c55e"
+      limit: 10
+    - id: mrr_by_region
+      name: MRR by Region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: mrr
+          name: MRR
+          formula: Sum([MRR])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: region
+        sort:
+          by: mrr
+          direction: descending
+      yAxis:
+        columnIds:
+          - mrr
+      color:
+        by: single
+        value: "#a78bfa"
+      limit: 10
+    - id: growth_date
+      name: Movement period
+      kind: control
+      controlId: growth_date
+      controlType: date-range
+      value:
+        start: 2024-10-01
+        end: 2025-09-01
+      filters:
+        - source:
+            kind: table
+            elementId: base_movements
+          columnId: month
+    - id: growth_type
+      name: Movement type
+      kind: control
+      controlId: growth_type
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_movements
+          columnId: movement_type
+    - id: kpi_new_mrr
+      name: New MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: value
+          name: New MRR
+          formula: SumIf([MRR Change], [Movement Type] = "New")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_expansion_mrr
+      name: Expansion MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: value
+          name: Expansion MRR
+          formula: SumIf([MRR Change], [Movement Type] = "Expansion")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_churn_mrr
+      name: Churned MRR
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: value
+          name: Churned MRR
+          formula: SumIf([MRR Change], [Movement Type] = "Churn")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_net_change
+      name: Net MRR Change
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: value
+          name: Net MRR Change
+          formula: Sum([MRR Change])
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: movement_trend
+      name: MRR Movements by Month
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: movement_type
+          name: Movement Type
+          formula: "[Movement Type]"
+        - id: change
+          name: MRR Change
+          formula: Sum([MRR Change])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - change
+      color:
+        by: category
+        column: movement_type
+        scheme: tableau
+    - id: movement_mix
+      name: Movement Mix
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: movement_type
+          name: Movement Type
+          formula: "[Movement Type]"
+        - id: movements
+          name: Movements
+          formula: CountDistinct([Movement ID])
+          format:
+            kind: number
+            decimals: 0
+      color:
+        by: category
+        column: movement_type
+        scheme: tableau
+      value:
+        columnId: movements
+      category:
+        columnId: movement_type
+    - id: movement_detail
+      name: Movement Detail
+      kind: table
+      source:
+        kind: table
+        elementId: base_movements
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: movement_type
+          name: Movement Type
+          formula: "[Movement Type]"
+        - id: plan_before
+          name: Plan Before
+          formula: "[Plan Before]"
+        - id: plan_after
+          name: Plan After
+          formula: "[Plan After]"
+        - id: mrr_before
+          name: MRR Before
+          formula: "[MRR Before]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: mrr_after
+          name: MRR After
+          formula: "[MRR After]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: mrr_change
+          name: MRR Change
+          formula: "[MRR Change]"
+          format:
+            kind: currency
+            decimals: 0
+      sort:
+        - columnId: month
+          direction: descending
+      limit: 100
+    - id: customer_region
+      name: Region
+      kind: control
+      controlId: customer_region
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: region
+        - source:
+            kind: table
+            elementId: base_mrr
+          columnId: region
+    - id: customer_status
+      name: Account status
+      kind: control
+      controlId: customer_status
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: status
+    - id: customer_plan
+      name: Current plan
+      kind: control
+      controlId: customer_plan
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_accounts
+          columnId: current_plan
+        - source:
+            kind: table
+            elementId: base_mrr
+          columnId: plan
+    - id: kpi_active_accounts
+      name: Active Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Active Accounts
+          formula: CountIf([Account Status] = "Active")
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_paid_share
+      name: Paid Account Share
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Paid Account Share
+          formula: SafeDivide(CountIf([Account Status] = "Active"), CountDistinct([Account ID]))
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_starting_seats
+      name: Average Starting Seats
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Average Starting Seats
+          formula: Avg([Starting Seats])
+          format:
+            kind: number
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_discount
+      name: Average Contract Discount
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: value
+          name: Average Contract Discount
+          formula: Avg([Contract Discount])
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: top_accounts
+      name: Top Accounts by Peak MRR
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_mrr
+      columns:
+        - id: account
+          name: Account
+          formula: "[Account Name]"
+        - id: mrr
+          name: Peak MRR
+          formula: Max([MRR])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: account
+        sort:
+          by: mrr
+          direction: descending
+      yAxis:
+        columnIds:
+          - mrr
+      color:
+        by: single
+        value: "#38bdf8"
+      orientation: horizontal
+      limit: 10
+    - id: accounts_by_region
+      name: Accounts by Region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: accounts
+          name: Accounts
+          formula: CountDistinct([Account ID])
+          format:
+            kind: number
+            decimals: 0
+      xAxis:
+        columnId: region
+        sort:
+          by: accounts
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts
+      color:
+        by: single
+        value: "#a78bfa"
+      limit: 10
+    - id: account_directory
+      name: Account Directory
+      kind: table
+      source:
+        kind: table
+        elementId: base_accounts
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: status
+          name: Status
+          formula: "[Account Status]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: csm
+          name: CSM
+          formula: "[Customer Success Manager]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+      sort:
+        - columnId: account_name
+          direction: ascending
+      limit: 100
+    - id: billing_date
+      name: Invoice period
+      kind: control
+      controlId: billing_date
+      controlType: date-range
+      value:
+        start: 2024-10-01
+        end: 2025-09-01
+      filters:
+        - source:
+            kind: table
+            elementId: base_invoices
+          columnId: invoice_date
+    - id: billing_status
+      name: Invoice status
+      kind: control
+      controlId: billing_status
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_invoices
+          columnId: invoice_status
+    - id: kpi_collected
+      name: Collected Total
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: value
+          name: Collected Total
+          formula: SumIf([Invoice Total], [Invoice Status] = "Paid" or [Invoice Status] = "Paid Late")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_open
+      name: Open Invoice Total
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: value
+          name: Open Invoice Total
+          formula: SumIf([Invoice Total], [Invoice Status] = "Open" or [Invoice Status] = "Past Due")
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_collection_rate
+      name: Collection Rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: value
+          name: Collection Rate
+          formula: SafeDivide(SumIf([Invoice Total], [Invoice Status] = "Paid" or [Invoice Status] = "Paid Late"), Sum([Invoice Total]))
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_avg_invoice
+      name: Average Invoice Total
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: value
+          name: Average Invoice Total
+          formula: Avg([Invoice Total])
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: billing_trend
+      name: Invoiced vs Collected
+      kind: line-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: month
+          name: Month
+          formula: DateTrunc("month", [Invoice Date])
+        - id: invoiced
+          name: Invoiced Total
+          formula: Sum([Invoice Total])
+          format:
+            kind: currency
+            decimals: 0
+        - id: collected
+          name: Collected Total
+          formula: SumIf([Invoice Total], [Invoice Status] = "Paid" or [Invoice Status] = "Paid Late")
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - invoiced
+          - collected
+    - id: open_by_status
+      name: Invoice Value by Status
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: status
+          name: Invoice Status
+          formula: "[Invoice Status]"
+        - id: total
+          name: Invoice Total
+          formula: Sum([Invoice Total])
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: status
+        sort:
+          by: total
+          direction: descending
+      yAxis:
+        columnIds:
+          - total
+      color:
+        by: category
+        column: status
+        scheme: tableau
+      limit: 10
+    - id: invoice_detail
+      name: Invoice Detail
+      kind: table
+      source:
+        kind: table
+        elementId: base_invoices
+      columns:
+        - id: invoice_id
+          name: Invoice ID
+          formula: "[Invoice ID]"
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: invoice_date
+          name: Invoice Date
+          formula: "[Invoice Date]"
+        - id: due_date
+          name: Due Date
+          formula: "[Due Date]"
+        - id: invoice_total
+          name: Invoice Total
+          formula: "[Invoice Total]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: status
+          name: Status
+          formula: "[Invoice Status]"
+        - id: paid_date
+          name: Paid Date
+          formula: "[Paid Date]"
+      sort:
+        - columnId: invoice_date
+          direction: descending
+      limit: 100
+    - id: adoption_category
+      name: Feature category
+      kind: control
+      controlId: adoption_category
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_features
+          columnId: feature_category
+    - id: adoption_plan
+      name: Minimum plan
+      kind: control
+      controlId: adoption_plan
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: base_features
+          columnId: min_plan
+    - id: kpi_adoption_rate
+      name: Feature Adoption Rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: value
+          name: Feature Adoption Rate
+          formula: SafeDivide(CountIf([Adopted] = true), Count())
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_adopted_pairs
+      name: Adopted Account-Feature Pairs
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: value
+          name: Adopted Pairs
+          formula: CountIf([Adopted] = true)
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_feature_mau
+      name: Monthly Active Users
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: value
+          name: Monthly Active Users
+          formula: Sum([Monthly Active Users])
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: adoption_by_feature
+      name: Adoption Rate by Feature
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: feature
+          name: Feature
+          formula: "[Feature]"
+        - id: rate
+          name: Adoption Rate
+          formula: SafeDivide(CountIf([Adopted] = true), Count())
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: feature
+        sort:
+          by: rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - rate
+      color:
+        by: scale
+        column: rate
+        scheme: teals
+      orientation: horizontal
+      limit: 10
+    - id: usage_by_category
+      name: Monthly Active Users by Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: category
+          name: Feature Category
+          formula: "[Feature Category]"
+        - id: mau
+          name: Monthly Active Users
+          formula: Sum([Monthly Active Users])
+          format:
+            kind: number
+            decimals: 0
+      xAxis:
+        columnId: category
+        sort:
+          by: mau
+          direction: descending
+      yAxis:
+        columnIds:
+          - mau
+      color:
+        by: single
+        value: "#22c55e"
+      limit: 10
+    - id: feature_detail
+      name: Feature Detail
+      kind: table
+      source:
+        kind: table
+        elementId: base_features
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: feature
+          name: Feature
+          formula: "[Feature]"
+        - id: category
+          name: Category
+          formula: "[Feature Category]"
+        - id: min_plan
+          name: Minimum Plan
+          formula: "[Minimum Plan]"
+        - id: adopted
+          name: Adopted
+          formula: "[Adopted]"
+        - id: first_used
+          name: First Used
+          formula: "[First Used Date]"
+        - id: last_used
+          name: Last Used
+          formula: "[Last Used Date]"
+        - id: mau
+          name: Monthly Active Users
+          formula: "[Monthly Active Users]"
+          format:
+            kind: number
+            decimals: 0
+      sort:
+        - columnId: mau
+          direction: descending
+      limit: 100
+  pages:
+    - id: overview
+      name: Executive Overview
+      elements:
+        - ov_date
+        - ov_plan
+        - ov_region
+        - kpi_mrr
+        - kpi_arr
+        - kpi_rev_accounts
+        - kpi_arpa
+        - mrr_trend
+        - mrr_by_plan
+        - mrr_by_region
+    - id: growth
+      name: Growth & Retention
+      elements:
+        - growth_date
+        - growth_type
+        - kpi_new_mrr
+        - kpi_expansion_mrr
+        - kpi_churn_mrr
+        - kpi_net_change
+        - movement_trend
+        - movement_mix
+        - id: movement_detail
+          height: 14
+    - id: customers
+      name: Customers & Plans
+      elements:
+        - customer_region
+        - customer_status
+        - customer_plan
+        - kpi_active_accounts
+        - kpi_paid_share
+        - kpi_starting_seats
+        - kpi_discount
+        - top_accounts
+        - accounts_by_region
+        - id: account_directory
+          height: 14
+    - id: billing
+      name: Billing Health
+      elements:
+        - billing_date
+        - billing_status
+        - kpi_collected
+        - kpi_open
+        - kpi_collection_rate
+        - kpi_avg_invoice
+        - billing_trend
+        - open_by_status
+        - id: invoice_detail
+          height: 14
+    - id: adoption
+      name: Product Adoption
+      elements:
+        - adoption_category
+        - adoption_plan
+        - kpi_adoption_rate
+        - kpi_adopted_pairs
+        - kpi_feature_mau
+        - adoption_by_feature
+        - usage_by_category
+        - id: feature_detail
+          height: 14
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - base_mrr
+        - base_movements
+        - base_accounts
+        - base_invoices
+        - base_features
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="ov_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="ov_plan" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="ov_region" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="kpi_mrr" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_arr" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_rev_accounts" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_arpa" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="mrr_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="mrr_by_plan" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="mrr_by_region" gridColumn="1 / 25" gridRow="16 / 25"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="growth">
+      <Element elementId="growth_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="growth_type" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_new_mrr" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_expansion_mrr" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_churn_mrr" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_net_change" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="movement_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="movement_mix" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="movement_detail" gridColumn="1 / 25" gridRow="16 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="customers">
+      <Element elementId="customer_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="customer_status" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="customer_plan" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="kpi_active_accounts" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_paid_share" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_starting_seats" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_discount" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="top_accounts" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="accounts_by_region" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="account_directory" gridColumn="1 / 25" gridRow="16 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="billing">
+      <Element elementId="billing_date" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="billing_status" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_collected" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_open" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_collection_rate" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_avg_invoice" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="billing_trend" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="open_by_status" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="invoice_detail" gridColumn="1 / 25" gridRow="16 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="adoption">
+      <Element elementId="adoption_category" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="adoption_plan" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_adoption_rate" gridColumn="1 / 9" gridRow="3 / 7"/>
+      <Element elementId="kpi_adopted_pairs" gridColumn="9 / 17" gridRow="3 / 7"/>
+      <Element elementId="kpi_feature_mau" gridColumn="17 / 25" gridRow="3 / 7"/>
+      <Element elementId="adoption_by_feature" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="usage_by_category" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="feature_detail" gridColumn="1 / 25" gridRow="16 / 30"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="base_mrr" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="base_movements" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="base_accounts" gridColumn="1 / 25" gridRow="25 / 37"/>
+      <Element elementId="base_invoices" gridColumn="1 / 25" gridRow="37 / 49"/>
+      <Element elementId="base_features" gridColumn="1 / 25" gridRow="49 / 61"/>
+    </Page>
+  settings:
+    theme:
+      preset: midnight
+      palette: ocean

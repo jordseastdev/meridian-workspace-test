@@ -1,0 +1,18 @@
+deliveryId: eval-delivery-off-muxxj03i
+name: Eval Weekly revenue by region
+folderId: sales
+contents:
+  schemaVersion: 1
+  kind: delivery
+  schedule: 0 9 * * 1
+  timezone: America/New_York
+  target:
+    workbookId: sales-command-center
+    elementId: rev_region
+  format: csv
+  destination:
+    kind: slack
+    url: ${SLACK_WEBHOOK_URL}
+  runAs: avery@meridian.dev
+  enabled: false
+  maxRows: 5000

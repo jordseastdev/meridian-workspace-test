@@ -1,0 +1,335 @@
+workbookId: discount-approvals-6
+name: Discount Approvals
+description: Phone-friendly queue for reviewing discount requests, with analytics and request details.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: deals_base
+      name: Discount requests
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+          formula: "[Age Days]"
+      visibleAsSource: true
+    - id: review
+      name: Review decisions
+      kind: input-table
+      actions:
+        - id: open_details
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_deal
+              value:
+                type: selection
+                columnId: deal_id
+            - effect: open-overlay
+              overlayId: request_drawer
+      inputMode: edit
+      source:
+        kind: linked
+        from: deals_base
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Deal ID
+          key: deal_id
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+        - id: discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+        - id: age_days
+          name: Age Days
+          formula: "[Age Days]"
+        - id: decision
+          name: Decision
+          type: text
+          values:
+            - Approved
+            - Rejected
+        - id: reason
+          name: Rejection Reason
+          type: text
+          multiline: true
+      rowActions:
+        - id: approve
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: IsNull([decision]) and [Status] = "Pending"
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: selected
+              values:
+                decision:
+                  type: constant
+                  value: Approved
+        - id: reject
+          text: Reject
+          appearance: outline
+          icon: x
+          showWhen: IsNull([decision]) and [Status] = "Pending"
+          ask:
+            label: Rejection reason
+            placeholder: Explain why this request is rejected
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: selected
+              values:
+                decision:
+                  type: constant
+                  value: Rejected
+                reason:
+                  type: answer
+      display: cards
+      card:
+        title: account
+        subtitle: owner
+        status: stage
+        fields:
+          - region
+          - list_amount
+          - discount
+          - age_days
+    - id: pending_count
+      name: Pending requests
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: count
+          name: Pending requests
+          formula: CountDistinct([Deal ID])
+      filters:
+        - id: pending
+          kind: formula
+          formula: IsNull([decision]) and [Status] = "Pending"
+      value:
+        columnId: count
+    - id: f_region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: deals_base
+          columnId: region
+    - id: f_owner
+      kind: control
+      controlId: owner_filter
+      controlType: list
+      label: Owner
+      filters:
+        - source:
+            kind: table
+            elementId: deals_base
+          columnId: owner
+    - id: by_stage
+      name: Requests by stage
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: requests
+          name: Requests
+          formula: CountDistinct([Deal ID])
+      xAxis:
+        columnId: stage
+        sort:
+          by: requests
+          direction: descending
+      yAxis:
+        columnIds:
+          - requests
+    - id: discount_by_region
+      name: Average submitted discount by region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: avg_discount
+          name: Average discount
+          formula: Avg([Submitted Discount])
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: region
+        sort:
+          by: avg_discount
+          direction: descending
+      yAxis:
+        columnIds:
+          - avg_discount
+    - id: selected_deal
+      kind: control
+      controlId: selected_deal
+      controlType: text
+      label: Selected deal
+    - id: request_detail
+      name: Request details
+      kind: table
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: owner_email
+          name: Owner Email
+          formula: "[Deals/Owner Email]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+          formula: "[Age Days]"
+      filters:
+        - id: selected
+          kind: formula
+          formula: "[Deal ID] = [selected_deal]"
+  pages:
+    - id: queue
+      name: Pending Queue
+      elements:
+        - f_region
+        - f_owner
+        - pending_count
+        - review
+    - id: charts
+      name: Charts
+      elements:
+        - by_stage
+        - discount_by_region
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - deals_base
+        - selected_deal
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="queue">
+      <Element elementId="f_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_owner" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="pending_count" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="review" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="charts">
+      <Element elementId="by_stage" gridColumn="1 / 13" gridRow="1 / 10"/>
+      <Element elementId="discount_by_region" gridColumn="13 / 25" gridRow="1 / 10"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="deals_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="selected_deal" gridColumn="1 / 7" gridRow="13 / 15"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="request_drawer">
+      <Element elementId="selected_deal" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="request_detail" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+  overlays:
+    - id: request_drawer
+      kind: drawer
+      title: Discount request details
+      elements:
+        - selected_deal
+        - request_detail
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

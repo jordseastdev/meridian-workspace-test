@@ -1,0 +1,475 @@
+workbookId: discount-approvals-8
+name: Discount Approvals
+description: Phone-friendly discount request review queue with decision tracking, drill-down details, and pipeline charts.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: deals
+      name: Deals
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[Deals/Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Deals/Account]"
+        - id: owner
+          name: Owner
+          formula: "[Deals/Owner]"
+        - id: region
+          name: Region
+          formula: "[Deals/Region]"
+        - id: stage
+          name: Stage
+          formula: "[Deals/Stage]"
+        - id: status
+          name: Status
+          formula: "[Deals/Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[Deals/List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: submitted_discount
+          name: Submitted Discount
+          formula: "[Deals/Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+          formula: "[Deals/Age Days]"
+    - id: review
+      name: Approval decisions
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: deals
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Deal ID
+          key: deal_id
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          type: number
+          formula: "[List Amount]"
+        - id: submitted_discount
+          name: Submitted Discount
+          type: number
+          formula: "[Submitted Discount]"
+        - id: age_days
+          name: Age Days
+          type: number
+          formula: "[Age Days]"
+        - id: decision
+          name: Decision
+          type: text
+          values:
+            - Approved
+            - Rejected
+        - id: reason
+          name: Rejection Reason
+          type: text
+          multiline: true
+        - id: reviewed_by
+          name: Reviewed By
+          type: text
+          readOnly: true
+        - id: reviewed_at
+          name: Reviewed At
+          type: datetime
+          readOnly: true
+      rowActions:
+        - id: approve
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: IsNull([decision])
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: selected
+              values:
+                decision:
+                  type: constant
+                  value: Approved
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+        - id: reject
+          text: Reject
+          appearance: danger
+          icon: x
+          showWhen: IsNull([decision])
+          ask:
+            label: Rejection reason
+            placeholder: Explain why this request is rejected
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: selected
+              values:
+                decision:
+                  type: constant
+                  value: Rejected
+                reason:
+                  type: answer
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+    - id: f_region
+      kind: control
+      controlId: region
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: deals
+          columnId: region
+    - id: f_stage
+      kind: control
+      controlId: stage
+      controlType: list
+      label: Stage
+      filters:
+        - source:
+            kind: table
+            elementId: deals
+          columnId: stage
+    - id: f_status
+      kind: control
+      controlId: status
+      controlType: list
+      label: Status
+      filters:
+        - source:
+            kind: table
+            elementId: deals
+          columnId: status
+    - id: pending_count
+      name: Pending requests
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: pending
+          name: Pending Requests
+          formula: CountIf(IsNull([Decision]))
+      value:
+        columnId: pending
+    - id: deal_cards
+      name: Pending discount requests
+      kind: table
+      actions:
+        - id: open_request
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_deal
+              value:
+                type: selection
+                columnId: deal_id
+            - effect: open-overlay
+              overlayId: request_detail
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: deal_id
+          name: Deal ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: status
+          name: Status
+        - id: list_amount
+          name: List Amount
+          format:
+            kind: currency
+            decimals: 0
+        - id: submitted_discount
+          name: Submitted Discount
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+        - id: decision
+          name: Decision
+        - id: reason
+          name: Rejection Reason
+      filters:
+        - id: pending_only
+          kind: formula
+          formula: IsNull([Decision])
+      rowActions:
+        - id: approve_card
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: IsNull([decision])
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: column-match
+                columnId: deal_id
+                value:
+                  type: selection
+                  columnId: deal_id
+              values:
+                decision:
+                  type: constant
+                  value: Approved
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+        - id: reject_card
+          text: Reject
+          appearance: danger
+          icon: x
+          showWhen: IsNull([decision])
+          ask:
+            label: Rejection reason
+            placeholder: Explain why this request is rejected
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: column-match
+                columnId: deal_id
+                value:
+                  type: selection
+                  columnId: deal_id
+              values:
+                decision:
+                  type: constant
+                  value: Rejected
+                reason:
+                  type: answer
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+      display: cards
+      card:
+        title: account
+        subtitle: owner
+        status: stage
+        fields:
+          - region
+          - list_amount
+          - submitted_discount
+          - age_days
+    - id: selected_deal
+      kind: control
+      controlId: selected_deal
+      controlType: text
+      label: Selected deal
+    - id: deal_detail
+      name: Request details
+      kind: table
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: status
+          name: Status
+        - id: list_amount
+          name: List Amount
+          format:
+            kind: currency
+            decimals: 0
+        - id: submitted_discount
+          name: Submitted Discount
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+      filters:
+        - id: selected_row
+          kind: formula
+          formula: "[Deal ID] = [selected_deal]"
+    - id: deals_by_stage
+      name: Requests by stage
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: stage
+          name: Stage
+        - id: requests
+          name: Request Count
+          formula: CountDistinct([Deal ID])
+      xAxis:
+        columnId: stage
+        sort:
+          by: requests
+          direction: descending
+      yAxis:
+        columnIds:
+          - requests
+      color:
+        by: single
+        value: "#0f766e"
+    - id: discount_by_region
+      name: Average submitted discount by region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: region
+          name: Region
+        - id: discount
+          name: Average Submitted Discount
+          formula: Avg([Submitted Discount])
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: region
+        sort:
+          by: discount
+          direction: descending
+      yAxis:
+        columnIds:
+          - discount
+      color:
+        by: single
+        value: "#0f766e"
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: assistant_drawer
+      text: Ask assistant
+      appearance: filled
+      icon: sparkles
+    - id: analyst
+      kind: agent
+      agentId: retail-assistant
+      placeholder: Ask about discount requests and approval trends
+      height: 600
+  pages:
+    - id: queue
+      name: Queue
+      elements:
+        - f_region
+        - f_stage
+        - f_status
+        - pending_count
+        - deal_cards
+        - ask_button
+    - id: charts
+      name: Charts
+      elements:
+        - deals_by_stage
+        - discount_by_region
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - deals
+        - review
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="queue">
+      <Element elementId="f_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_stage" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="f_status" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="pending_count" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="deal_cards" gridColumn="1 / 25" gridRow="7 / 19"/>
+      <Element elementId="ask_button" gridColumn="1 / 5" gridRow="19 / 21"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="charts">
+      <Element elementId="deals_by_stage" gridColumn="1 / 13" gridRow="1 / 10"/>
+      <Element elementId="discount_by_region" gridColumn="13 / 25" gridRow="1 / 10"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="deals" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="review" gridColumn="1 / 25" gridRow="13 / 25"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="request_detail">
+      <Element elementId="selected_deal" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="deal_detail" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="assistant_drawer">
+      <Element elementId="analyst" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: request_detail
+      kind: drawer
+      title: Request details
+      size: large
+      elements:
+        - selected_deal
+        - deal_detail
+    - id: assistant_drawer
+      kind: drawer
+      title: Discount approvals assistant
+      size: large
+      elements:
+        - analyst
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

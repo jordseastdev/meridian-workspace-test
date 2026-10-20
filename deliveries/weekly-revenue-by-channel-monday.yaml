@@ -1,0 +1,16 @@
+deliveryId: weekly-revenue-by-channel-monday
+name: Weekly Revenue by Channel
+contents:
+  schemaVersion: 1
+  kind: delivery
+  schedule: 0 9 * * MON
+  timezone: America/Los_Angeles
+  target:
+    workbookId: retail-sales-overview-10
+    elementId: channel_sales
+  format: csv
+  destination:
+    kind: saved
+    destinationId: general-test
+  enabled: true
+  maxRows: 5000

@@ -1,0 +1,281 @@
+workbookId: retail-operations-2
+name: Retail Operations
+description: Retail sales overview, customer order drilldown, and manager order notes.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: orders_base
+      name: Orders base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: order_month
+          name: Order Month
+          formula: "[Orders/Order Month]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Orders/Customer ID]"
+        - id: customer_name
+          name: Customer Name
+          formula: "[Customer/Customer Name]"
+        - id: channel
+          name: Channel
+          formula: "[Orders/Channel]"
+        - id: status
+          name: Status
+          formula: "[Orders/Status]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: profit
+          name: Profit
+          formula: "[Orders/Profit]"
+          format:
+            kind: currency
+            decimals: 0
+      limit: 50000
+    - id: date_filter
+      kind: control
+      controlId: order_dates
+      controlType: date-range
+      label: Order date
+      value:
+        start: 2023-01-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: orders_base
+          columnId: order_date
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: ask_assistant
+      text: Ask Retail Assistant
+      appearance: filled
+      icon: sparkles
+    - id: kpi_revenue
+      name: Total revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: revenue
+    - id: kpi_orders
+      name: Order lines
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: orders
+          name: Order Count
+          formula: "[Order Count]"
+      value:
+        columnId: orders
+    - id: revenue_trend
+      name: Monthly revenue trend
+      kind: line-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: month
+          name: Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: customer_table
+      name: Customers
+      kind: table
+      actions:
+        - id: show_customer_orders
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_customer
+              value:
+                type: selection
+                columnId: customer_id
+            - effect: open-overlay
+              overlayId: customer_orders_drawer
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: customers
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: customer_name
+          name: Customer Name
+          formula: "[Customer Name]"
+        - id: segment
+          name: Segment
+          formula: "[Segment]"
+        - id: region
+          name: Region
+          formula: "[Customer Region]"
+      limit: 500
+    - id: picked_customer
+      kind: control
+      controlId: selected_customer
+      controlType: text
+      label: Selected customer
+    - id: customer_orders
+      name: Customer orders
+      kind: table
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: order_date
+          name: Order Date
+        - id: order_id
+          name: Order ID
+        - id: channel
+          name: Channel
+        - id: status
+          name: Status
+        - id: revenue
+          name: Revenue
+          format:
+            kind: currency
+            decimals: 0
+      filters:
+        - id: selected_customer_filter
+          kind: formula
+          formula: "[Customer ID] = [selected_customer]"
+      limit: 500
+    - id: order_notes
+      name: Manager order notes
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: order_id
+          name: Order ID
+          type: text
+          required: true
+        - id: note
+          name: Note
+          type: text
+          multiline: true
+          required: true
+        - id: manager
+          name: Manager
+          type: text
+          default:
+            kind: user
+        - id: noted_at
+          name: Noted at
+          type: date
+          default:
+            kind: today
+    - id: assistant
+      kind: agent
+      agentId: retail-sales-assistant
+      placeholder: Ask about retail sales, trends, channels, or customers…
+      height: 650
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - date_filter
+        - ask_button
+        - kpi_revenue
+        - kpi_orders
+        - revenue_trend
+    - id: customers
+      name: Customers
+      elements:
+        - customer_table
+    - id: notes
+      name: Notes
+      elements:
+        - order_notes
+    - id: helpers
+      name: Helpers
+      visibility: hidden
+      elements:
+        - orders_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="date_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="ask_button" gridColumn="7 / 11" gridRow="1 / 3"/>
+      <Element elementId="kpi_revenue" gridColumn="1 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_orders" gridColumn="13 / 25" gridRow="3 / 7"/>
+      <Element elementId="revenue_trend" gridColumn="1 / 25" gridRow="7 / 16"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="customers">
+      <Element elementId="customer_table" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="notes">
+      <Element elementId="order_notes" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="helpers">
+      <Element elementId="orders_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="ask_assistant">
+      <Element elementId="assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="customer_orders_drawer">
+      <Element elementId="picked_customer" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="customer_orders" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+  overlays:
+    - id: ask_assistant
+      kind: drawer
+      title: Retail Assistant
+      size: large
+      elements:
+        - assistant
+    - id: customer_orders_drawer
+      kind: drawer
+      title: Customer orders
+      size: large
+      elements:
+        - picked_customer
+        - customer_orders
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

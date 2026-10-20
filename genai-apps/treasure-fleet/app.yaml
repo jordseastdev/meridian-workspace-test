@@ -1,0 +1,7 @@
+genaiAppId: treasure-fleet
+name: Treasure Fleet
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: pirate-account-treasure
+  prompt: Create a polished, richly pirate-themed SaaS account management screen. Use a nautical midnight palette with brass/gold accents, map-and-chart inspired motifs, clear typography and delightful pirate copy without sacrificing legibility. List all 3,000 accounts as a searchable/filterable fleet manifest with one card per account, showing account name, plan and lifecycle status, region, owner/CSM, billed amount, adoption counts, signup date, and invoice activity. Add useful filters for status, plan, region, owner, and search. Provide a detailed account view when selected. Keep the screen practical and professional; do not invent renewal dates or risk fields because they are not in the supplied data.

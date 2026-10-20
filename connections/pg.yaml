@@ -1,0 +1,5 @@
+connectionId: pg
+name: Local Postgres
+readOnly: false
+type: postgres
+dsn: ${TEST_PG_DSN}

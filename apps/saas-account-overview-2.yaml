@@ -1,0 +1,239 @@
+workbookId: saas-account-overview-2
+name: SaaS Account Overview
+description: An interactive overview of SaaS account scale, billing, adoption, and account details.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: account_base
+      name: Account data
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: paid_invoice_count
+          name: Paid Invoice Count
+          formula: "[Paid Invoice Count]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+    - id: f_signup
+      kind: control
+      controlId: signup_range
+      controlType: date-range
+      label: Signup date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: signup_date
+    - id: f_region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: region
+    - id: kpi_accounts
+      name: Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: v
+          name: Accounts
+          formula: "[Account Count]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: kpi_billed
+      name: Total billed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: v
+          name: Total Billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: v
+    - id: kpi_adoption
+      name: Feature adoption
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: v
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: kpi_paid
+      name: Paid invoice rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: v
+          name: Paid Invoice Rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: by_plan
+      name: Accounts by current plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: plan
+        sort:
+          by: accounts
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts
+      color:
+        by: single
+        value: "#4661c9"
+    - id: account_detail
+      name: Account details
+      kind: table
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Plan
+          formula: "[Current Plan]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_feature_count
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Records
+          formula: "[Feature Record Count]"
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - f_signup
+        - f_region
+        - kpi_accounts
+        - kpi_billed
+        - kpi_adoption
+        - kpi_paid
+        - by_plan
+        - account_detail
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - account_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="f_signup" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_region" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="kpi_accounts" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_billed" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_adoption" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_paid" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="by_plan" gridColumn="1 / 25" gridRow="7 / 16"/>
+      <Element elementId="account_detail" gridColumn="1 / 25" gridRow="16 / 28"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="account_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

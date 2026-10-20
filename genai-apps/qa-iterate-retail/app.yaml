@@ -1,0 +1,7 @@
+genaiAppId: qa-iterate-retail
+name: QA Iterate Retail
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: qa-iterate-retail-data
+  prompt: "Build a polished, responsive retail dashboard using the real grouped data in the workbook. Organize the React source into App.tsx, Header.tsx, and Charts.tsx so the header can be edited independently. Header title: Retail pulse. Subtitle: Revenue and profit at a glance. Use @meridian/ui charts: a BarChart for total revenue and gross profit by product category, and a LineChart for revenue and gross profit by month. Show two visible series in each chart, with a clear legend, readable currency formatting, and a clean responsive layout. Use category_totals for the category chart and monthly_totals for the monthly chart; do not use literals or add filters, controls, or writeback."

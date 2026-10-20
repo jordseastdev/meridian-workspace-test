@@ -1,0 +1,88 @@
+dataModelId: customer
+name: Customer
+folderId: tpch
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: customer
+      name: Customers
+      description: One row per customer in the TPCH sample customer table.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: snowflake
+        path:
+          - SNOWFLAKE_SAMPLE_DATA
+          - TPCH_SF1
+          - CUSTOMER
+      columns:
+        - id: customer_key
+          name: Customer Key
+          description: Unique customer identifier.
+          formula: "[CUSTOMER/C_CUSTKEY]"
+          role: identifier
+        - id: customer_name
+          name: Customer Name
+          description: Customer name.
+          formula: "[CUSTOMER/C_NAME]"
+          role: dimension
+        - id: address
+          name: Address
+          description: Customer mailing address.
+          formula: "[CUSTOMER/C_ADDRESS]"
+          role: attribute
+        - id: nation_key
+          name: Nation Key
+          description: Numeric key identifying the customer's nation.
+          formula: "[CUSTOMER/C_NATIONKEY]"
+          role: dimension
+        - id: phone
+          name: Phone
+          description: Customer phone number.
+          formula: "[CUSTOMER/C_PHONE]"
+          role: attribute
+        - id: account_balance
+          name: Account Balance
+          description: Customer account balance in US dollars.
+          formula: "[CUSTOMER/C_ACCTBAL]"
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+          role: measure
+        - id: market_segment
+          name: Market Segment
+          description: Customer market segment.
+          formula: "[CUSTOMER/C_MKTSEGMENT]"
+          role: dimension
+        - id: comment
+          name: Comment
+          description: Free-text customer comment.
+          formula: "[CUSTOMER/C_COMMENT]"
+          role: attribute
+      metrics:
+        - id: customer_count
+          name: Customer Count
+          description: Number of unique customers.
+          formula: CountDistinct([Customer Key])
+          format:
+            kind: number
+            decimals: 0
+        - id: total_account_balance
+          name: Total Account Balance
+          description: Total account balance across customers.
+          formula: Sum([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 0
+        - id: average_account_balance
+          name: Average Account Balance
+          description: Average account balance per customer.
+          formula: Avg([Account Balance])
+          format:
+            kind: currency
+            currency: USD
+            decimals: 2
+      visibleAsSource: true

@@ -1,0 +1,224 @@
+workbookId: pirate-account-treasure
+name: Pirate Account Treasure
+description: Hidden data workbook for the pirate-themed account screen.
+tags:
+  - genai-data
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Account Manifest
+      description: One row per account, with account attributes and rolled-up adoption and billing measures.
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: employee_count
+          name: Employee Count
+          formula: "[Employee Count]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: acquisition_source
+          name: Acquisition Source
+          formula: "[Acquisition Source]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: converted_date
+          name: Converted Date
+          formula: "[Converted Date]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billing_period
+          name: Billing Period
+          formula: "[Billing Period]"
+        - id: contract_discount
+          name: Contract Discount
+          formula: "[Contract Discount]"
+        - id: starting_seats
+          name: Starting Seats
+          formula: "[Starting Seats]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: total_monthly_active_users
+          name: Total Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+        - id: paid_invoice_count
+          name: Paid Invoice Count
+          formula: "[Paid Invoice Count]"
+        - id: unpaid_invoice_count
+          name: Unpaid Invoice Count
+          formula: "[Unpaid Invoice Count]"
+        - id: first_feature_use_date
+          name: First Feature Use Date
+          formula: "[First Feature Use Date]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: last_invoice_date
+          name: Last Invoice Date
+          formula: "[Last Invoice Date]"
+        - id: last_paid_date
+          name: Last Paid Date
+          formula: "[Last Paid Date]"
+      limit: 50000
+    - id: account_activity
+      name: Account Activity
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: activity_id
+          name: Activity ID
+          type: text
+          default:
+            kind: id
+            prefix: ACT-
+          required: true
+        - id: account_id
+          name: Account ID
+          type: number
+          required: true
+        - id: note
+          name: Note
+          type: text
+          multiline: true
+          required: true
+        - id: created_by
+          name: Created By
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: created_at
+          name: Created At
+          type: datetime
+          default:
+            kind: now
+          readOnly: true
+    - id: account_work
+      name: Account Follow-ups
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: accounts
+        connectionId: default
+      columns:
+        - id: account_id
+          name: Account ID
+          key: account_id
+        - id: next_step
+          name: Next Step
+          type: text
+          multiline: true
+        - id: follow_up_date
+          name: Follow-up Date
+          type: date
+        - id: assigned_to
+          name: Assigned To
+          type: text
+    - id: saved_views
+      name: Saved Views
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: view_id
+          name: View ID
+          type: text
+          default:
+            kind: id
+            prefix: VIEW-
+          required: true
+        - id: view_name
+          name: View Name
+          type: text
+          required: true
+        - id: configuration
+          name: Configuration
+          type: text
+          multiline: true
+          required: true
+        - id: created_by
+          name: Created By
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: created_at
+          name: Created At
+          type: datetime
+          default:
+            kind: now
+          readOnly: true
+  pages:
+    - id: accounts
+      name: Account Treasure
+      elements:
+        - accounts
+        - account_work
+        - account_activity
+        - saved_views
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="accounts">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="account_work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="account_activity" gridColumn="1 / 25" gridRow="25 / 37"/>
+      <Element elementId="saved_views" gridColumn="1 / 25" gridRow="37 / 49"/>
+    </Page>
+  settings:
+    theme:
+      preset: midnight
+      palette: ocean

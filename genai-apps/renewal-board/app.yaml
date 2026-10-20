@@ -1,0 +1,7 @@
+genaiAppId: renewal-board
+name: Renewal Board
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: renewal-board-data
+  prompt: Change the headline accounts count so it is computed from the searched read/results and updates with the search—for example, show 4 when searching Blue Logistics. Keep all other behavior and UI unchanged.

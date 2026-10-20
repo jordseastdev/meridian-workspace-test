@@ -1,0 +1,1278 @@
+dataModelId: saas
+name: SaaS
+description: Semantic layer over the demo B2B SaaS warehouse. Accounts, plans, monthly MRR and its movements, billing, product usage, support, NPS and pipeline from Jan 2022 to Sep 2025.
+folderId: models
+tags:
+  - certified
+  - saas
+  - finance
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: accounts
+      name: Accounts
+      description: Customer company accounts, including free workspaces and paid customers. Current plan and status are as of Sep 27, 2025.
+      kind: table
+      grain: account_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - ACCOUNTS
+      columns:
+        - id: account_id
+          name: Account ID
+          description: Stable unique identifier for the customer company.
+          formula: "[ACCOUNTS/ACCOUNT_ID]"
+          role: identifier
+          synonyms:
+            - Customer ID
+            - Company ID
+            - Account Number
+        - id: account_name
+          name: Account Name
+          description: Customer company or workspace name.
+          formula: "[ACCOUNTS/ACCOUNT_NAME]"
+          role: attribute
+          synonyms:
+            - Customer Name
+            - Company Name
+        - id: domain
+          name: Domain
+          description: Company web domain associated with the account.
+          formula: "[ACCOUNTS/DOMAIN]"
+          role: attribute
+          synonyms:
+            - Website
+            - Company Domain
+        - id: industry
+          name: Industry
+          description: Industry classification for the account.
+          formula: "[ACCOUNTS/INDUSTRY]"
+          role: dimension
+        - id: company_size
+          name: Company Size
+          description: Small, Mid-Market or Enterprise.
+          formula: "[ACCOUNTS/COMPANY_SIZE]"
+          role: dimension
+          synonyms:
+            - Segment
+            - Customer Segment
+        - id: employee_count
+          name: Employee Count
+          description: Number of employees reported for the account.
+          formula: "[ACCOUNTS/EMPLOYEE_COUNT]"
+          role: measure
+          synonyms:
+            - Employees
+            - Headcount
+        - id: region
+          name: Region
+          description: North America, EMEA, APAC or LATAM.
+          formula: "[ACCOUNTS/REGION]"
+          role: geo
+          synonyms:
+            - Geography
+            - Territory
+        - id: acquisition_source
+          name: Acquisition Source
+          description: Marketing channel that generated the signup.
+          formula: "[ACCOUNTS/ACQUISITION_SOURCE]"
+          role: dimension
+          synonyms:
+            - Lead Source
+            - Marketing Channel
+            - Source
+        - id: signup_date
+          name: Signup Date
+          description: Date the free workspace was created.
+          formula: "[ACCOUNTS/SIGNUP_DATE]"
+          role: time
+          synonyms:
+            - Registration Date
+            - Created Date
+        - id: converted_date
+          name: Converted Date
+          description: First month the account became paid. Empty for free accounts.
+          formula: "[ACCOUNTS/CONVERTED_DATE]"
+          role: time
+          synonyms:
+            - Conversion Date
+            - Paid Date
+        - id: churned_date
+          name: Churned Date
+          description: Month the subscription ended. Empty if still a customer.
+          formula: "[ACCOUNTS/CHURNED_DATE]"
+          role: time
+          synonyms:
+            - Cancellation Date
+            - Churn Date
+        - id: starting_plan
+          name: Starting Plan
+          description: First paid plan selected by the account.
+          formula: "[ACCOUNTS/STARTING_PLAN]"
+          role: dimension
+          synonyms:
+            - Initial Plan
+            - Original Plan
+        - id: current_plan
+          name: Current Plan
+          description: Plan currently held, or the last plan before churn.
+          formula: "[ACCOUNTS/CURRENT_PLAN]"
+          role: dimension
+          synonyms:
+            - Active Plan
+            - Subscription Plan
+        - id: plan_changed_date
+          name: Plan Changed Date
+          description: Month of the upgrade or downgrade, if any.
+          formula: "[ACCOUNTS/PLAN_CHANGED_DATE]"
+          role: time
+          synonyms:
+            - Upgrade Date
+            - Downgrade Date
+        - id: billing_period
+          name: Billing Period
+          description: Monthly or Annual billing cadence.
+          formula: "[ACCOUNTS/BILLING_PERIOD]"
+          role: dimension
+          synonyms:
+            - Billing Frequency
+            - Contract Term
+        - id: contract_discount
+          name: Contract Discount
+          description: Discount applied to the account's contracted price.
+          formula: "[ACCOUNTS/CONTRACT_DISCOUNT]"
+          format:
+            kind: percent
+            decimals: 0
+          role: measure
+        - id: starting_seats
+          name: Starting Seats
+          description: Number of seats at the start of the first paid subscription.
+          formula: "[ACCOUNTS/STARTING_SEATS]"
+          role: measure
+          synonyms:
+            - Initial Seats
+            - Licenses
+        - id: status
+          name: Status
+          description: "Lifecycle state: Free, Active or Churned."
+          formula: "[ACCOUNTS/STATUS]"
+          role: dimension
+          synonyms:
+            - Account Status
+            - Customer Status
+        - id: churn_reason
+          name: Churn Reason
+          description: Recorded reason the account cancelled.
+          formula: "[ACCOUNTS/CHURN_REASON]"
+          role: dimension
+          synonyms:
+            - Cancellation Reason
+        - id: account_owner
+          name: Account Owner
+          description: Account executive responsible for the account.
+          formula: "[ACCOUNTS/ACCOUNT_OWNER]"
+          role: dimension
+          synonyms:
+            - Sales Owner
+            - AE
+            - Account Executive
+        - id: csm
+          name: CSM
+          description: Customer success manager (Business and Enterprise only).
+          formula: "[ACCOUNTS/CSM]"
+          role: dimension
+          synonyms:
+            - Customer Success Manager
+            - Success Manager
+      metrics:
+        - id: account_count
+          name: Account Count
+          description: Distinct number of customer accounts.
+          formula: CountDistinct([Account ID])
+          synonyms:
+            - Customers
+            - Logos
+            - Customer Count
+        - id: paying_accounts
+          name: Paying Accounts
+          description: Number of accounts with a recorded conversion to paid.
+          formula: CountIf(IsNotNull([Converted Date]))
+          synonyms:
+            - Paid Customers
+            - Paying Customers
+          goal: increase
+        - id: free_to_paid
+          name: Free-to-paid Conversion
+          description: Share of accounts that converted from free to paid.
+          formula: SafeDivide(CountIf(IsNotNull([Converted Date])), Count())
+          format:
+            kind: percent
+            decimals: 1
+          synonyms:
+            - Conversion Rate
+            - Free to Paid Rate
+          timeline:
+            columnId: signup_date
+            grain: month
+          goal: increase
+        - id: logo_churn_rate
+          name: Logo Churn Rate
+          description: Churned paid accounts divided by converted accounts.
+          formula: SafeDivide(CountIf([Status] = "Churned"), CountIf(IsNotNull([Converted Date])))
+          format:
+            kind: percent
+            decimals: 1
+          synonyms:
+            - Customer Churn Rate
+            - Account Churn
+          goal: decrease
+      visibleAsSource: true
+    - id: plans
+      name: Plans
+      description: Price list. Prices are per seat per month; annual prices are billed yearly up front.
+      kind: table
+      grain: plan_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - PLANS
+      columns:
+        - id: plan_id
+          name: Plan ID
+          formula: "[PLANS/PLAN_ID]"
+          role: identifier
+        - id: plan_name
+          name: Plan Name
+          formula: "[PLANS/PLAN_NAME]"
+          role: dimension
+        - id: tier_rank
+          name: Tier Rank
+          description: 1 (Free) to 5 (Enterprise).
+          formula: "[PLANS/TIER_RANK]"
+          role: measure
+        - id: monthly_price_per_seat
+          name: Monthly Price per Seat
+          formula: "[PLANS/MONTHLY_PRICE_PER_SEAT]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: annual_price_per_seat
+          name: Annual Price per Seat
+          description: Effective monthly price when billed annually.
+          formula: "[PLANS/ANNUAL_PRICE_PER_SEAT]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: min_seats
+          name: Min Seats
+          formula: "[PLANS/MIN_SEATS]"
+          role: measure
+        - id: includes_sso
+          name: Includes SSO
+          formula: "[PLANS/INCLUDES_SSO]"
+          role: dimension
+        - id: includes_api
+          name: Includes API
+          formula: "[PLANS/INCLUDES_API]"
+          role: dimension
+        - id: includes_audit_log
+          name: Includes Audit Log
+          formula: "[PLANS/INCLUDES_AUDIT_LOG]"
+          role: dimension
+        - id: support_level
+          name: Support Level
+          formula: "[PLANS/SUPPORT_LEVEL]"
+          role: dimension
+      visibleAsSource: true
+    - id: mrr_monthly
+      name: MRR Monthly
+      description: One row per paying account per month. MRR is seats x price per seat x (1 - discount).
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - MRR_MONTHLY
+      columns:
+        - id: month
+          name: Month
+          formula: "[MRR_MONTHLY/MONTH]"
+          role: time
+        - id: account_id
+          name: Account ID
+          formula: "[MRR_MONTHLY/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: plan_name
+          name: Plan
+          formula: "[MRR_MONTHLY/PLAN_NAME]"
+          role: dimension
+        - id: tier_rank
+          name: Tier Rank
+          formula: "[MRR_MONTHLY/TIER_RANK]"
+          role: measure
+        - id: billing_period
+          name: Billing Period
+          formula: "[MRR_MONTHLY/BILLING_PERIOD]"
+          role: dimension
+        - id: seats
+          name: Seats
+          formula: "[MRR_MONTHLY/SEATS]"
+          role: measure
+        - id: price_per_seat
+          name: Price per Seat
+          formula: "[MRR_MONTHLY/PRICE_PER_SEAT]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: contract_discount
+          name: Contract Discount
+          formula: "[MRR_MONTHLY/CONTRACT_DISCOUNT]"
+          format:
+            kind: percent
+            decimals: 0
+          role: measure
+        - id: months_since_conversion
+          name: Months Since Conversion
+          description: Tenure in months; 0 is the first paid month.
+          formula: "[MRR_MONTHLY/MONTHS_SINCE_CONVERSION]"
+          role: measure
+        - id: mrr
+          name: MRR
+          description: Monthly recurring revenue.
+          formula: "[MRR_MONTHLY/MRR]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: arr
+          name: ARR
+          description: MRR x 12.
+          formula: "[MRR_MONTHLY/ARR]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: total_mrr
+          name: Total MRR
+          formula: Sum([MRR])
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: total_arr
+          name: Total ARR
+          formula: Sum([ARR])
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: paying_customers
+          name: Paying Customers
+          formula: CountDistinct([Account ID])
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: arpa
+          name: ARPA
+          formula: SafeDivide(Sum([MRR]), CountDistinct([Account ID]))
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+        - id: total_seats
+          name: Total Seats
+          formula: Sum([Seats])
+          goal: increase
+      relationships:
+        - id: mrr_monthly_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+        - id: mrr_monthly_plan
+          name: Plan
+          targetElementId: plans
+          keys:
+            - sourceColumnId: plan_name
+              targetColumnId: plan_name
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: mrr_movements
+      name: MRR Movements
+      description: "One row per account-month where MRR changed: New, Expansion, Upgrade, Contraction, Downgrade or Churn."
+      kind: table
+      grain: movement_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - MRR_MOVEMENTS
+      columns:
+        - id: movement_id
+          name: Movement ID
+          formula: "[MRR_MOVEMENTS/MOVEMENT_ID]"
+          role: identifier
+        - id: month
+          name: Month
+          formula: "[MRR_MOVEMENTS/MONTH]"
+          role: time
+        - id: account_id
+          name: Account ID
+          formula: "[MRR_MOVEMENTS/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: movement_type
+          name: Movement Type
+          description: New, Expansion, Upgrade, Contraction, Downgrade or Churn.
+          formula: "[MRR_MOVEMENTS/MOVEMENT_TYPE]"
+          role: dimension
+        - id: plan_before
+          name: Plan Before
+          formula: "[MRR_MOVEMENTS/PLAN_BEFORE]"
+          role: dimension
+        - id: plan_after
+          name: Plan After
+          formula: "[MRR_MOVEMENTS/PLAN_AFTER]"
+          role: dimension
+        - id: mrr_before
+          name: MRR Before
+          formula: "[MRR_MOVEMENTS/MRR_BEFORE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: mrr_after
+          name: MRR After
+          formula: "[MRR_MOVEMENTS/MRR_AFTER]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: mrr_change
+          name: MRR Change
+          description: Positive for growth, negative for losses.
+          formula: "[MRR_MOVEMENTS/MRR_CHANGE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+      metrics:
+        - id: net_new_mrr
+          name: Net New MRR
+          formula: Sum([MRR Change])
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: new_mrr
+          name: New MRR
+          formula: SumIf([MRR Change], [Movement Type] = "New")
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: expansion_mrr
+          name: Expansion MRR
+          formula: SumIf([MRR Change], [Movement Type] = "Expansion" Or [Movement Type] = "Upgrade")
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: churned_mrr
+          name: Churned MRR
+          formula: -SumIf([MRR Change], [Movement Type] = "Churn")
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: decrease
+        - id: contraction_mrr
+          name: Contraction MRR
+          formula: -SumIf([MRR Change], [Movement Type] = "Contraction" Or [Movement Type] = "Downgrade")
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: month
+            grain: month
+          goal: decrease
+      relationships:
+        - id: mrr_movements_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: subscriptions
+      name: Subscriptions
+      description: One row per contiguous run of an account on one plan. A plan change ends one subscription and starts the next.
+      kind: table
+      grain: subscription_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - SUBSCRIPTIONS
+      columns:
+        - id: subscription_id
+          name: Subscription ID
+          formula: "[SUBSCRIPTIONS/SUBSCRIPTION_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[SUBSCRIPTIONS/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: plan_name
+          name: Plan
+          formula: "[SUBSCRIPTIONS/PLAN_NAME]"
+          role: dimension
+        - id: billing_period
+          name: Billing Period
+          formula: "[SUBSCRIPTIONS/BILLING_PERIOD]"
+          role: dimension
+        - id: start_date
+          name: Start Date
+          formula: "[SUBSCRIPTIONS/START_DATE]"
+          role: time
+        - id: end_date
+          name: End Date
+          description: Empty while active.
+          formula: "[SUBSCRIPTIONS/END_DATE]"
+          role: time
+        - id: status
+          name: Status
+          description: Active, Changed Plan or Cancelled.
+          formula: "[SUBSCRIPTIONS/STATUS]"
+          role: dimension
+        - id: starting_seats
+          name: Starting Seats
+          formula: "[SUBSCRIPTIONS/STARTING_SEATS]"
+          role: measure
+        - id: current_seats
+          name: Current Seats
+          description: Seats in the last billed month.
+          formula: "[SUBSCRIPTIONS/CURRENT_SEATS]"
+          role: measure
+        - id: current_mrr
+          name: Current MRR
+          formula: "[SUBSCRIPTIONS/CURRENT_MRR]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: first_renewal_date
+          name: First Renewal Date
+          description: Annual subscriptions only.
+          formula: "[SUBSCRIPTIONS/FIRST_RENEWAL_DATE]"
+          role: time
+        - id: auto_renew
+          name: Auto Renew
+          formula: "[SUBSCRIPTIONS/AUTO_RENEW]"
+          role: dimension
+      metrics:
+        - id: active_subscriptions
+          name: Active Subscriptions
+          formula: CountIf([Status] = "Active")
+          goal: increase
+      relationships:
+        - id: subscriptions_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: invoices
+      name: Invoices
+      description: Monthly plans are invoiced every month, annual plans every 12 months. Status is as of Sep 27, 2025.
+      kind: table
+      grain: invoice_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - INVOICES
+      columns:
+        - id: invoice_id
+          name: Invoice ID
+          formula: "[INVOICES/INVOICE_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[INVOICES/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: invoice_date
+          name: Invoice Date
+          formula: "[INVOICES/INVOICE_DATE]"
+          role: time
+        - id: due_date
+          name: Due Date
+          formula: "[INVOICES/DUE_DATE]"
+          role: time
+        - id: paid_date
+          name: Paid Date
+          formula: "[INVOICES/PAID_DATE]"
+          role: time
+        - id: plan_name
+          name: Plan
+          formula: "[INVOICES/PLAN_NAME]"
+          role: dimension
+        - id: billing_period
+          name: Billing Period
+          formula: "[INVOICES/BILLING_PERIOD]"
+          role: dimension
+        - id: payment_method
+          name: Payment Method
+          description: Card, ACH or Invoice.
+          formula: "[INVOICES/PAYMENT_METHOD]"
+          role: dimension
+        - id: seats
+          name: Seats
+          formula: "[INVOICES/SEATS]"
+          role: measure
+        - id: amount
+          name: Amount
+          description: Pre-tax amount.
+          formula: "[INVOICES/AMOUNT]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: tax
+          name: Tax
+          formula: "[INVOICES/TAX]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: total
+          name: Total
+          formula: "[INVOICES/TOTAL]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: status
+          name: Status
+          description: Paid, Paid Late, Open, Past Due or Written Off.
+          formula: "[INVOICES/STATUS]"
+          role: dimension
+      metrics:
+        - id: billings
+          name: Billings
+          formula: Sum([Amount])
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: invoice_date
+            grain: month
+          goal: increase
+        - id: collected
+          name: Collected
+          formula: SumIf([Total], IsNotNull([Paid Date]))
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: invoice_date
+            grain: month
+          goal: increase
+        - id: past_due_amount
+          name: Past Due Amount
+          formula: SumIf([Total], [Status] = "Past Due")
+          format:
+            kind: currency
+            decimals: 0
+          goal: decrease
+        - id: on_time_payment_rate
+          name: On-time Payment Rate
+          formula: SafeDivide(CountIf([Status] = "Paid"), CountIf(IsNotNull([Paid Date])))
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+        - id: avg_days_to_pay
+          name: Avg Days to Pay
+          formula: Avg(DateDiff("day", [Invoice Date], [Paid Date]))
+          format:
+            kind: number
+            decimals: 1
+          goal: decrease
+      relationships:
+        - id: invoices_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: users
+      name: Users
+      description: Up to 14 named users per account (owner, admins, members and viewers).
+      kind: table
+      grain: user_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - USERS
+      columns:
+        - id: user_id
+          name: User ID
+          formula: "[USERS/USER_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[USERS/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: first_name
+          name: First Name
+          formula: "[USERS/FIRST_NAME]"
+          role: attribute
+        - id: last_name
+          name: Last Name
+          formula: "[USERS/LAST_NAME]"
+          role: attribute
+        - id: role
+          name: Role
+          description: Owner, Admin, Member or Viewer.
+          formula: "[USERS/ROLE]"
+          role: dimension
+        - id: department
+          name: Department
+          formula: "[USERS/DEPARTMENT]"
+          role: dimension
+        - id: invited_date
+          name: Invited Date
+          formula: "[USERS/INVITED_DATE]"
+          role: time
+        - id: last_active_date
+          name: Last Active Date
+          formula: "[USERS/LAST_ACTIVE_DATE]"
+          role: time
+        - id: is_active
+          name: Is Active
+          description: Active in the last 30 days.
+          formula: "[USERS/IS_ACTIVE]"
+          role: dimension
+        - id: mfa_enabled
+          name: MFA Enabled
+          formula: "[USERS/MFA_ENABLED]"
+          role: dimension
+      metrics:
+        - id: user_count
+          name: User Count
+          formula: CountDistinct([User ID])
+        - id: active_user_rate
+          name: Active User Rate
+          formula: SafeDivide(CountIf([Is Active]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+        - id: mfa_rate
+          name: MFA Adoption
+          formula: SafeDivide(CountIf([MFA Enabled]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      relationships:
+        - id: users_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      columnSecurity:
+        - columnIds:
+            - first_name
+            - last_name
+          allow:
+            teams:
+              - PII
+      visibleAsSource: true
+    - id: usage_monthly
+      name: Usage Monthly
+      description: Product usage per paying account per month. Engagement drops in the months before an account churns.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - USAGE_MONTHLY
+      columns:
+        - id: month
+          name: Month
+          formula: "[USAGE_MONTHLY/MONTH]"
+          role: time
+        - id: account_id
+          name: Account ID
+          formula: "[USAGE_MONTHLY/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: seats
+          name: Seats
+          formula: "[USAGE_MONTHLY/SEATS]"
+          role: measure
+        - id: active_users
+          name: Active Users
+          description: Distinct users active in the month.
+          formula: "[USAGE_MONTHLY/ACTIVE_USERS]"
+          role: measure
+        - id: seat_utilization
+          name: Seat Utilization
+          description: Active users / seats.
+          formula: "[USAGE_MONTHLY/SEAT_UTILIZATION]"
+          format:
+            kind: percent
+            decimals: 1
+          role: measure
+        - id: sessions
+          name: Sessions
+          formula: "[USAGE_MONTHLY/SESSIONS]"
+          role: measure
+        - id: events
+          name: Events
+          formula: "[USAGE_MONTHLY/EVENTS]"
+          role: measure
+        - id: api_calls
+          name: API Calls
+          description: Growth plan and above.
+          formula: "[USAGE_MONTHLY/API_CALLS]"
+          role: measure
+        - id: storage_gb
+          name: Storage GB
+          formula: "[USAGE_MONTHLY/STORAGE_GB]"
+          format:
+            kind: number
+            decimals: 1
+          role: measure
+        - id: dashboards_created
+          name: Dashboards Created
+          formula: "[USAGE_MONTHLY/DASHBOARDS_CREATED]"
+          role: measure
+        - id: reports_exported
+          name: Reports Exported
+          formula: "[USAGE_MONTHLY/REPORTS_EXPORTED]"
+          role: measure
+      metrics:
+        - id: mau
+          name: Monthly Active Users
+          formula: Sum([Active Users])
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: avg_seat_utilization
+          name: Avg Seat Utilization
+          formula: SafeDivide(Sum([Active Users]), Sum([Seats]))
+          format:
+            kind: percent
+            decimals: 1
+          timeline:
+            columnId: month
+            grain: month
+          goal: increase
+        - id: total_api_calls
+          name: Total API Calls
+          formula: Sum([API Calls])
+          goal: increase
+      relationships:
+        - id: usage_monthly_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: feature_adoption
+      name: Feature Adoption
+      description: One row per paying account per feature available on its current plan.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - FEATURE_ADOPTION
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[FEATURE_ADOPTION/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: feature
+          name: Feature
+          formula: "[FEATURE_ADOPTION/FEATURE]"
+          role: dimension
+        - id: feature_category
+          name: Feature Category
+          formula: "[FEATURE_ADOPTION/FEATURE_CATEGORY]"
+          role: dimension
+        - id: min_plan
+          name: Min Plan
+          description: Cheapest plan that includes the feature.
+          formula: "[FEATURE_ADOPTION/MIN_PLAN]"
+          role: dimension
+        - id: adopted
+          name: Adopted
+          formula: "[FEATURE_ADOPTION/ADOPTED]"
+          role: dimension
+        - id: first_used_date
+          name: First Used Date
+          formula: "[FEATURE_ADOPTION/FIRST_USED_DATE]"
+          role: time
+        - id: last_used_date
+          name: Last Used Date
+          formula: "[FEATURE_ADOPTION/LAST_USED_DATE]"
+          role: time
+        - id: monthly_active_users
+          name: Monthly Active Users
+          formula: "[FEATURE_ADOPTION/MONTHLY_ACTIVE_USERS]"
+          role: measure
+      metrics:
+        - id: adoption_rate
+          name: Adoption Rate
+          formula: SafeDivide(CountIf([Adopted]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      relationships:
+        - id: feature_adoption_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: support_tickets
+      name: Support Tickets
+      description: Support tickets from paying accounts. Larger accounts file more tickets; Business and Enterprise get faster first responses.
+      kind: table
+      grain: ticket_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - SUPPORT_TICKETS
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[SUPPORT_TICKETS/TICKET_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[SUPPORT_TICKETS/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: created_date
+          name: Created Date
+          formula: "[SUPPORT_TICKETS/CREATED_DATE]"
+          role: time
+        - id: category
+          name: Category
+          formula: "[SUPPORT_TICKETS/CATEGORY]"
+          role: dimension
+        - id: priority
+          name: Priority
+          description: Urgent, High, Normal or Low.
+          formula: "[SUPPORT_TICKETS/PRIORITY]"
+          role: dimension
+        - id: channel
+          name: Channel
+          formula: "[SUPPORT_TICKETS/CHANNEL]"
+          role: dimension
+        - id: agent
+          name: Agent
+          formula: "[SUPPORT_TICKETS/AGENT]"
+          role: dimension
+        - id: status
+          name: Status
+          formula: "[SUPPORT_TICKETS/STATUS]"
+          role: dimension
+        - id: first_response_hours
+          name: First Response Hours
+          formula: "[SUPPORT_TICKETS/FIRST_RESPONSE_HOURS]"
+          format:
+            kind: number
+            decimals: 1
+          role: measure
+        - id: resolution_hours
+          name: Resolution Hours
+          formula: "[SUPPORT_TICKETS/RESOLUTION_HOURS]"
+          format:
+            kind: number
+            decimals: 1
+          role: measure
+        - id: csat_score
+          name: CSAT Score
+          description: 1 to 5; empty when the survey was skipped.
+          formula: "[SUPPORT_TICKETS/CSAT_SCORE]"
+          role: measure
+        - id: escalated_to_engineering
+          name: Escalated to Engineering
+          formula: "[SUPPORT_TICKETS/ESCALATED_TO_ENGINEERING]"
+          role: dimension
+      metrics:
+        - id: ticket_count
+          name: Ticket Count
+          formula: CountDistinct([Ticket ID])
+          timeline:
+            columnId: created_date
+            grain: month
+          goal: decrease
+        - id: avg_csat
+          name: Avg CSAT
+          formula: Avg([CSAT Score])
+          format:
+            kind: number
+            decimals: 2
+          goal: increase
+        - id: median_first_response
+          name: Median First Response (hrs)
+          formula: Median([First Response Hours])
+          format:
+            kind: number
+            decimals: 1
+          goal: decrease
+        - id: escalation_rate
+          name: Escalation Rate
+          formula: SafeDivide(CountIf([Escalated to Engineering]), Count())
+          format:
+            kind: percent
+            decimals: 1
+          goal: decrease
+      relationships:
+        - id: support_tickets_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: nps_responses
+      name: NPS Responses
+      description: Quarterly in-app NPS survey responses.
+      kind: table
+      grain: response_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - NPS_RESPONSES
+      columns:
+        - id: response_id
+          name: Response ID
+          formula: "[NPS_RESPONSES/RESPONSE_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[NPS_RESPONSES/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: response_date
+          name: Response Date
+          formula: "[NPS_RESPONSES/RESPONSE_DATE]"
+          role: time
+        - id: score
+          name: Score
+          description: 0 to 10.
+          formula: "[NPS_RESPONSES/SCORE]"
+          role: measure
+        - id: nps_category
+          name: NPS Category
+          description: Promoter (9-10), Passive (7-8) or Detractor (0-6).
+          formula: "[NPS_RESPONSES/NPS_CATEGORY]"
+          role: dimension
+        - id: primary_theme
+          name: Primary Theme
+          formula: "[NPS_RESPONSES/PRIMARY_THEME]"
+          role: dimension
+        - id: respondent_role
+          name: Respondent Role
+          formula: "[NPS_RESPONSES/RESPONDENT_ROLE]"
+          role: dimension
+      metrics:
+        - id: nps
+          name: NPS
+          formula: (SafeDivide(CountIf([NPS Category] = "Promoter"), Count()) - SafeDivide(CountIf([NPS Category] = "Detractor"), Count())) * 100
+          format:
+            kind: number
+            decimals: 0
+          timeline:
+            columnId: response_date
+            grain: quarter
+          goal: increase
+        - id: response_count
+          name: Response Count
+          formula: Count()
+      relationships:
+        - id: nps_responses_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true
+    - id: opportunities
+      name: Opportunities
+      description: "Sales pipeline: closed new business, plan changes, lost deals and open opportunities. Amount is annualized."
+      kind: table
+      grain: opportunity_id
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - SAAS
+          - OPPORTUNITIES
+      columns:
+        - id: opportunity_id
+          name: Opportunity ID
+          formula: "[OPPORTUNITIES/OPPORTUNITY_ID]"
+          role: identifier
+        - id: account_id
+          name: Account ID
+          formula: "[OPPORTUNITIES/ACCOUNT_ID]"
+          hidden: true
+          role: identifier
+        - id: opportunity_type
+          name: Opportunity Type
+          description: New Business, Expansion, Upgrade or Downgrade.
+          formula: "[OPPORTUNITIES/OPPORTUNITY_TYPE]"
+          role: dimension
+        - id: stage
+          name: Stage
+          formula: "[OPPORTUNITIES/STAGE]"
+          role: dimension
+        - id: owner
+          name: Owner
+          formula: "[OPPORTUNITIES/OWNER]"
+          role: dimension
+        - id: created_date
+          name: Created Date
+          formula: "[OPPORTUNITIES/CREATED_DATE]"
+          role: time
+        - id: close_date
+          name: Close Date
+          description: Expected close date for open opportunities.
+          formula: "[OPPORTUNITIES/CLOSE_DATE]"
+          role: time
+        - id: amount
+          name: Amount
+          description: Annualized contract value.
+          formula: "[OPPORTUNITIES/AMOUNT]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: lead_source
+          name: Lead Source
+          formula: "[OPPORTUNITIES/LEAD_SOURCE]"
+          role: dimension
+        - id: loss_reason
+          name: Loss Reason
+          formula: "[OPPORTUNITIES/LOSS_REASON]"
+          role: dimension
+        - id: probability
+          name: Probability
+          formula: "[OPPORTUNITIES/PROBABILITY]"
+          format:
+            kind: percent
+            decimals: 0
+          role: measure
+      metrics:
+        - id: open_pipeline
+          name: Open Pipeline
+          formula: SumIf([Amount], [Stage] <> "Closed Won" And [Stage] <> "Closed Lost")
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+        - id: weighted_pipeline
+          name: Weighted Pipeline
+          formula: SumIf([Amount] * [Probability], [Stage] <> "Closed Won" And [Stage] <> "Closed Lost")
+          format:
+            kind: currency
+            decimals: 0
+          goal: increase
+        - id: bookings
+          name: Bookings
+          formula: SumIf([Amount], [Stage] = "Closed Won")
+          format:
+            kind: currency
+            decimals: 0
+          timeline:
+            columnId: close_date
+            grain: month
+          goal: increase
+        - id: win_rate
+          name: Win Rate
+          formula: SafeDivide(CountIf([Stage] = "Closed Won"), CountIf([Stage] = "Closed Won" Or [Stage] = "Closed Lost"))
+          format:
+            kind: percent
+            decimals: 1
+          goal: increase
+      relationships:
+        - id: opportunities_account
+          name: Account
+          targetElementId: accounts
+          keys:
+            - sourceColumnId: account_id
+              targetColumnId: account_id
+          cardinality: many-to-one
+      visibleAsSource: true

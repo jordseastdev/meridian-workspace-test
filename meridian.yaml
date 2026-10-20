@@ -1,0 +1,3 @@
+# A Meridian workspace. Each item is a file named by its id; see docs/workspace-files.md.
+workspace: 1
+include: all

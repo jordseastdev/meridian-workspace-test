@@ -1,0 +1,183 @@
+dataModelId: revenue-action-model
+name: Revenue Action Intelligence
+description: Account-grain signals from the six selected SaaS tables; child facts are aggregated before joining.
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: accounts
+      name: Accounts
+      description: One row per account with current subscription, invoicing, adoption and open opportunity signals. Priority is a triage heuristic, not a churn prediction.
+      kind: table
+      source:
+        kind: sql
+        connectionId: default
+        statement: |
+          WITH s AS (
+            SELECT account_id, SUM(current_mrr) AS mrr, SUM(current_seats) AS seats,
+              MIN(first_renewal_date) AS renewal_date
+            FROM MERIDIAN.SAAS.SUBSCRIPTIONS WHERE status = 'Active' GROUP BY account_id
+          ), f AS (
+            SELECT account_id, COUNT(*) AS features, SUM(CASE WHEN adopted THEN 1 ELSE 0 END) AS adopted,
+              MAX(last_used_date) AS last_used
+            FROM MERIDIAN.SAAS.FEATURE_ADOPTION GROUP BY account_id
+          ), i AS (
+            SELECT account_id, SUM(CASE WHEN status = 'Past Due' THEN total ELSE 0 END) AS past_due,
+              MAX(invoice_date) AS invoice_date
+            FROM MERIDIAN.SAAS.INVOICES GROUP BY account_id
+          ), o AS (
+            SELECT account_id, SUM(amount) AS pipeline, SUM(amount * probability) AS weighted_pipeline
+            FROM MERIDIAN.SAAS.OPPORTUNITIES WHERE stage NOT IN ('Closed Won', 'Closed Lost') GROUP BY account_id
+          )
+          SELECT a.account_id, a.account_name, a.account_owner, a.csm, a.region, a.current_plan,
+            COALESCE(s.mrr,0) AS mrr, COALESCE(s.seats,0) AS seats, s.renewal_date,
+            COALESCE(i.past_due,0) AS past_due, i.invoice_date,
+            COALESCE(f.adopted,0) AS adopted, COALESCE(f.features,0) AS features, f.last_used,
+            COALESCE(o.pipeline,0) AS pipeline, COALESCE(o.weighted_pipeline,0) AS weighted_pipeline,
+            p.monthly_price_per_seat AS list_price,
+            CASE WHEN COALESCE(i.past_due,0)>0 THEN 'Collect overdue'
+                 WHEN COALESCE(s.mrr,0)>0 AND f.features>0 AND 1.0*f.adopted/f.features<0.3 THEN 'Improve adoption'
+                 WHEN COALESCE(o.pipeline,0)>0 THEN 'Advance pipeline'
+                 ELSE 'Monitor' END AS action_lane
+          FROM MERIDIAN.SAAS.ACCOUNTS a
+          LEFT JOIN s ON a.account_id=s.account_id
+          LEFT JOIN f ON a.account_id=f.account_id
+          LEFT JOIN i ON a.account_id=i.account_id
+          LEFT JOIN o ON a.account_id=o.account_id
+          LEFT JOIN MERIDIAN.SAAS.PLANS p ON a.current_plan=p.plan_name
+      columns:
+        - id: account_id
+          name: Account ID
+          description: Unique account identifier.
+          formula: "[ACCOUNT_ID]"
+          role: identifier
+        - id: account
+          name: Account
+          description: Customer account name.
+          formula: "[ACCOUNT_NAME]"
+          role: dimension
+        - id: owner
+          name: Account Owner
+          description: Source account owner.
+          formula: "[ACCOUNT_OWNER]"
+          role: dimension
+        - id: csm
+          name: CSM
+          description: Customer success manager.
+          formula: "[CSM]"
+          role: dimension
+        - id: region
+          name: Region
+          description: Account region.
+          formula: "[REGION]"
+          role: dimension
+        - id: plan
+          name: Plan
+          description: Current account plan.
+          formula: "[CURRENT_PLAN]"
+          role: dimension
+        - id: mrr
+          name: Active MRR
+          description: Sum of current MRR on Active subscriptions only.
+          formula: "[MRR]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: seats
+          name: Active Seats
+          description: Current seats on Active subscriptions.
+          formula: "[SEATS]"
+          role: measure
+        - id: renewal
+          name: First Renewal
+          description: Earliest first renewal date among active subscriptions; may be historical.
+          formula: "[RENEWAL_DATE]"
+          role: time
+        - id: past_due
+          name: Past Due Balance
+          description: Invoice total including tax with source status Past Due.
+          formula: "[PAST_DUE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: invoice_date
+          name: Latest Invoice
+          description: Latest invoice date available per account.
+          formula: "[INVOICE_DATE]"
+          role: time
+        - id: adopted
+          name: Adopted Features
+          description: Feature records marked adopted.
+          formula: "[ADOPTED]"
+          role: measure
+        - id: features
+          name: Tracked Features
+          description: All tracked feature records; not adjusted for plan eligibility.
+          formula: "[FEATURES]"
+          role: measure
+        - id: last_used
+          name: Last Feature Use
+          description: Latest feature usage timestamp in source.
+          formula: "[LAST_USED]"
+          role: time
+        - id: pipeline
+          name: Open Pipeline
+          description: Opportunity amounts excluding Closed Won and Closed Lost; not recurring revenue.
+          formula: "[PIPELINE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: weighted
+          name: Weighted Pipeline
+          description: Open opportunity amount times source probability; not realized revenue.
+          formula: "[WEIGHTED_PIPELINE]"
+          format:
+            kind: currency
+            decimals: 0
+          role: measure
+        - id: list_price
+          name: Monthly Seat List Price
+          description: Current plan monthly seat list price before discounts; not actual billing.
+          formula: "[LIST_PRICE]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: lane
+          name: Action Lane
+          description: Prioritizes overdue balances then adoption below 30 percent then open pipeline; monitor otherwise.
+          formula: "[ACTION_LANE]"
+          role: dimension
+      metrics:
+        - id: total_mrr
+          name: Total Active MRR
+          description: Current active subscription MRR across accounts.
+          formula: Sum([Active MRR])
+          format:
+            kind: currency
+            decimals: 0
+        - id: overdue
+          name: Total Past Due
+          description: Total source flagged past due invoice balances including tax.
+          formula: Sum([Past Due Balance])
+          format:
+            kind: currency
+            decimals: 0
+        - id: pipeline
+          name: Total Open Pipeline
+          description: Unweighted open opportunity amount.
+          formula: Sum([Open Pipeline])
+          format:
+            kind: currency
+            decimals: 0
+        - id: adoption
+          name: Tracked Adoption Rate
+          description: Adopted feature records divided by all tracked records; not plan eligibility adjusted.
+          formula: SafeDivide(Sum([Adopted Features]), Sum([Tracked Features]))
+          format:
+            kind: percent
+            decimals: 1
+      visibleAsSource: true

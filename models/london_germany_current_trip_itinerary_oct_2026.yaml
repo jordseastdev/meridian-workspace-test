@@ -1,0 +1,63 @@
+dataModelId: london_germany_current_trip_itinerary_oct_2026
+name: London Germany Current Trip Itinerary Oct 2026
+description: Semantic model over uploads.london_germany_current_trip_itinerary_oct_2026 (default). Describe what one row represents.
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: london_germany_current_trip_itinerary_oct_2026
+      name: London Germany Current Trip Itinerary Oct 2026
+      description: One row represents a scheduled activity or plan in the October 2026 London and Germany trip itinerary.
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - UPLOADS
+          - LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026
+      columns:
+        - id: date
+          name: Date
+          description: Calendar date on which the itinerary activity is scheduled.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/DATE]"
+          role: dimension
+        - id: city
+          name: City
+          description: City associated with the scheduled itinerary activity.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/CITY]"
+          role: dimension
+        - id: time
+          name: Time
+          description: Scheduled time or time range for the itinerary activity.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/TIME]"
+          role: dimension
+        - id: plan
+          name: Plan
+          description: Name or summary of the planned activity, visit, journey, or reservation.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/PLAN]"
+          role: dimension
+        - id: location_details
+          name: Location Details
+          description: Venue, address, meeting point, route, or other location information for the activity.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/LOCATION_DETAILS]"
+          role: dimension
+        - id: status
+          name: Status
+          description: Current planning or confirmation status of the itinerary activity.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/STATUS]"
+          role: dimension
+        - id: notes
+          name: Notes
+          description: Additional context, reminders, booking details, or instructions related to the activity.
+          formula: "[LONDON_GERMANY_CURRENT_TRIP_ITINERARY_OCT_2026/NOTES]"
+          role: dimension
+      metrics:
+        - id: row_count
+          name: Row Count
+          description: Number of itinerary activities or plans.
+          formula: Count()
+          format:
+            kind: number
+            decimals: 0
+      visibleAsSource: true

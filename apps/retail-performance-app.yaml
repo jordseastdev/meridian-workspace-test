@@ -1,0 +1,254 @@
+workbookId: retail-performance-app
+name: Retail Performance App
+description: Retail sales, profitability and order-line performance across the available order history.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: date_filter
+      kind: control
+      controlId: order_dates
+      controlType: date-range
+      label: Order date range
+      value:
+        start: 2023-01-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: order_base
+          columnId: order_date
+    - id: channel_filter
+      kind: control
+      controlId: channel
+      controlType: list
+      label: Channel
+      filters:
+        - source:
+            kind: table
+            elementId: order_base
+          columnId: channel
+    - id: order_base
+      name: Filtered Retail Order Lines
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail-obt
+        elementId: order_lines
+      columns:
+        - id: order_id
+          name: Order ID
+          formula: "[Order ID]"
+        - id: order_date
+          name: Order Date
+          formula: "[Order Date]"
+        - id: order_month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: product_id
+          name: Product ID
+          formula: "[Product ID]"
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: quantity
+          name: Quantity
+          formula: "[Quantity]"
+        - id: unit_price
+          name: Unit Price
+          formula: "[Unit Price]"
+        - id: revenue
+          name: Revenue
+          formula: "[Revenue]"
+        - id: cost
+          name: Cost
+          formula: "[Cost]"
+        - id: profit
+          name: Profit
+          formula: "[Profit]"
+        - id: category
+          name: Category
+          formula: "[Products/Category]"
+    - id: revenue_kpi
+      name: Total Revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: value
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      value:
+        columnId: value
+    - id: profit_kpi
+      name: Total Profit
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: value
+          name: Total Profit
+          formula: "[Total Profit]"
+      value:
+        columnId: value
+    - id: orders_kpi
+      name: Order Count
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: value
+          name: Order Count
+          formula: "[Order Count]"
+      value:
+        columnId: value
+    - id: customers_kpi
+      name: Customer Count
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: value
+          name: Customer Count
+          formula: "[Customer Count]"
+      value:
+        columnId: value
+    - id: monthly_revenue
+      name: Monthly Revenue
+      kind: line-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: month
+          name: Order Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: revenue_channel
+      name: Revenue by Channel
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: channel
+          name: Channel
+          formula: "[Channel]"
+        - id: revenue
+          name: Total Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: channel
+        sort:
+          by: revenue
+          direction: descending
+      yAxis:
+        columnIds:
+          - revenue
+    - id: category_profit
+      name: Profit by Product Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: category
+          name: Category
+          formula: "[Category]"
+        - id: profit
+          name: Total Profit
+          formula: "[Total Profit]"
+      xAxis:
+        columnId: category
+        sort:
+          by: profit
+          direction: descending
+      yAxis:
+        columnIds:
+          - profit
+    - id: order_detail
+      name: Order Line Detail
+      kind: table
+      source:
+        kind: table
+        elementId: order_base
+      columns:
+        - id: order_id
+          name: Order ID
+        - id: order_date
+          name: Order Date
+        - id: channel
+          name: Channel
+        - id: status
+          name: Status
+        - id: customer_id
+          name: Customer ID
+        - id: category
+          name: Category
+        - id: product_id
+          name: Product ID
+        - id: quantity
+          name: Quantity
+        - id: revenue
+          name: Revenue
+        - id: profit
+          name: Profit
+      limit: 100
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - date_filter
+        - channel_filter
+        - revenue_kpi
+        - profit_kpi
+        - orders_kpi
+        - customers_kpi
+        - monthly_revenue
+        - revenue_channel
+        - category_profit
+        - order_detail
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - order_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="date_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="channel_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="revenue_kpi" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="profit_kpi" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="orders_kpi" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="customers_kpi" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="monthly_revenue" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="revenue_channel" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="category_profit" gridColumn="1 / 25" gridRow="16 / 25"/>
+      <Element elementId="order_detail" gridColumn="1 / 25" gridRow="25 / 37"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="order_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

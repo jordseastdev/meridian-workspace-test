@@ -1,0 +1,7 @@
+genaiAppId: captain-s-account-quarters
+name: Captain's Account Quarters
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: captain-account-quarters
+  prompt: Create a polished, pirate-themed SaaS account explorer. Show an account manifest with account name, industry, region, lifecycle status, current plan, owner and CSM. Let me search and filter by industry, region, status, plan and owner. When an account is selected, show its full account profile, adoption totals and invoice/billed treasure details. Keep the interface fun and nautical, but make the data easy to scan.

@@ -1,0 +1,7 @@
+genaiAppId: saas-portfolio-cockpit
+name: SaaS Portfolio Cockpit
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: saas-portfolio-cockpit
+  prompt: Update the screen to make the account portfolio interactive. Show account follow-up editing with next step, follow-up date and owner, and let users add append-only account notes with account ID and note text. Keep the account list and make these inputs easy to use.

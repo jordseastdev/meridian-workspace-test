@@ -1,0 +1,318 @@
+workbookId: retail-operations
+name: Retail Operations
+description: Retail sales overview, customer order drill-in, manager order notes, and an assistant for sales questions.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: orders_base
+      name: Orders data
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: orders
+      columns:
+        - id: order_id
+          name: Order ID
+          formula: "[Orders/Order ID]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Orders/Customer ID]"
+        - id: customer_name
+          name: Customer
+          formula: "[Customer/Customer Name]"
+        - id: order_date
+          name: Order Date
+          formula: "[Orders/Order Date]"
+        - id: order_month
+          name: Order Month
+          formula: "[Orders/Order Month]"
+        - id: channel
+          name: Channel
+          formula: "[Orders/Channel]"
+        - id: status
+          name: Status
+          formula: "[Orders/Status]"
+        - id: revenue
+          name: Revenue
+          formula: "[Orders/Revenue]"
+        - id: profit
+          name: Profit
+          formula: "[Orders/Profit]"
+      visibleAsSource: true
+    - id: date_filter
+      kind: control
+      controlId: order_dates
+      controlType: date-range
+      label: Order date
+      value:
+        start: 2023-01-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: orders_base
+          columnId: order_date
+    - id: ask_assistant
+      kind: button
+      actions:
+        - id: open_sales_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: sales_assistant_drawer
+      text: Ask Sales Assistant
+      appearance: filled
+      icon: sparkles
+    - id: sales_assistant
+      kind: agent
+      agentId: retail-sales-assistant
+      placeholder: Ask about retail sales, revenue trends, channels, customers, or margins…
+      height: 680
+    - id: revenue_kpi
+      name: Total revenue
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: value
+          name: Revenue
+          formula: "[Total Revenue]"
+        - id: month
+          name: Month
+          formula: "[Order Month]"
+      value:
+        columnId: value
+      trend:
+        columnId: month
+    - id: orders_kpi
+      name: Order lines
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: value
+          name: Order lines
+          formula: "[Order Count]"
+      value:
+        columnId: value
+    - id: margin_kpi
+      name: Gross margin
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: value
+          name: Gross Margin
+          formula: "[Gross Margin]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: revenue_trend
+      name: Monthly revenue
+      kind: line-chart
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: month
+          name: Month
+          formula: "[Order Month]"
+        - id: revenue
+          name: Revenue
+          formula: "[Total Revenue]"
+      xAxis:
+        columnId: month
+      yAxis:
+        columnIds:
+          - revenue
+    - id: customer_table
+      name: Customers
+      kind: table
+      actions:
+        - id: open_customer_orders
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: picked_customer
+              value:
+                type: selection
+                columnId: customer_id
+            - effect: open-overlay
+              overlayId: customer_orders_drawer
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: customer_name
+          name: Customer
+          formula: "[Customer]"
+        - id: segment
+          name: Segment
+          formula: "[Customer/Segment]"
+        - id: tier
+          name: Loyalty Tier
+          formula: "[Customer/Loyalty Tier]"
+        - id: region
+          name: Region
+          formula: "[Customer/Customer Region]"
+        - id: revenue
+          name: Revenue
+          formula: Sum([Revenue])
+          format:
+            kind: currency
+            decimals: 0
+      groupings:
+        - id: by_customer
+          groupBy:
+            - customer_id
+            - customer_name
+            - segment
+            - tier
+            - region
+          calculations:
+            - revenue
+          sort:
+            - columnId: revenue
+              direction: descending
+      sort:
+        - columnId: revenue
+          direction: descending
+      limit: 500
+    - id: picked_customer
+      kind: control
+      controlId: picked_customer
+      controlType: text
+      label: Selected customer
+      filters:
+        - source:
+            kind: table
+            elementId: customer_orders
+          columnId: customer_id
+    - id: customer_orders
+      name: Customer orders
+      kind: table
+      source:
+        kind: table
+        elementId: orders_base
+      columns:
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: order_id
+          name: Order ID
+        - id: order_date
+          name: Order Date
+        - id: channel
+          name: Channel
+        - id: status
+          name: Status
+        - id: revenue
+          name: Revenue
+          formula: "[Revenue]"
+      sort:
+        - columnId: order_date
+          direction: descending
+    - id: order_notes
+      name: Manager order notes
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: order_id
+          name: Order ID
+          type: text
+          required: true
+        - id: note
+          name: Note
+          type: text
+          multiline: true
+          required: true
+        - id: follow_up
+          name: Follow-up date
+          type: date
+        - id: manager
+          name: Logged by
+          type: text
+          default:
+            kind: user
+          readOnly: true
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - date_filter
+        - ask_assistant
+        - revenue_kpi
+        - orders_kpi
+        - margin_kpi
+        - revenue_trend
+    - id: customers_page
+      name: Customers
+      elements:
+        - customer_table
+    - id: notes_page
+      name: Notes
+      elements:
+        - order_notes
+    - id: hidden_data
+      name: Data
+      visibility: hidden
+      elements:
+        - orders_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="date_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="ask_assistant" gridColumn="7 / 11" gridRow="1 / 3"/>
+      <Element elementId="revenue_kpi" gridColumn="1 / 9" gridRow="3 / 7"/>
+      <Element elementId="orders_kpi" gridColumn="9 / 17" gridRow="3 / 7"/>
+      <Element elementId="margin_kpi" gridColumn="17 / 25" gridRow="3 / 7"/>
+      <Element elementId="revenue_trend" gridColumn="1 / 25" gridRow="7 / 16"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="customers_page">
+      <Element elementId="customer_table" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="notes_page">
+      <Element elementId="order_notes" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="hidden_data">
+      <Element elementId="orders_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="sales_assistant_drawer">
+      <Element elementId="sales_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="customer_orders_drawer">
+      <Element elementId="picked_customer" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="customer_orders" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+  overlays:
+    - id: sales_assistant_drawer
+      kind: drawer
+      title: Sales Assistant
+      size: large
+      elements:
+        - sales_assistant
+    - id: customer_orders_drawer
+      kind: drawer
+      title: Customer orders
+      size: large
+      elements:
+        - picked_customer
+        - customer_orders
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

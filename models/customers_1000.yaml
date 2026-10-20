@@ -1,0 +1,89 @@
+dataModelId: customers_1000
+name: Customers 1000
+description: Semantic model over uploads.customers_1000 (default). Describe what one row represents.
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: customers_1000
+      name: Customers 1000
+      description: ""
+      kind: table
+      source:
+        kind: warehouse-table
+        connectionId: default
+        path:
+          - MERIDIAN
+          - UPLOADS
+          - CUSTOMERS_1000
+      columns:
+        - id: index
+          name: " Index"
+          description: ""
+          formula: "[CUSTOMERS_1000/_INDEX]"
+          role: measure
+        - id: customer_id
+          name: Customer Id
+          description: ""
+          formula: "[CUSTOMERS_1000/CUSTOMER_ID]"
+          role: identifier
+        - id: first_name
+          name: First Name
+          description: ""
+          formula: "[CUSTOMERS_1000/FIRST_NAME]"
+          role: dimension
+        - id: last_name
+          name: Last Name
+          description: ""
+          formula: "[CUSTOMERS_1000/LAST_NAME]"
+          role: dimension
+        - id: company
+          name: Company
+          description: ""
+          formula: "[CUSTOMERS_1000/COMPANY]"
+          role: dimension
+        - id: city
+          name: City
+          description: ""
+          formula: "[CUSTOMERS_1000/CITY]"
+          role: dimension
+        - id: country
+          name: Country
+          description: ""
+          formula: "[CUSTOMERS_1000/COUNTRY]"
+          role: dimension
+        - id: phone_1
+          name: Phone 1
+          description: ""
+          formula: "[CUSTOMERS_1000/PHONE_1]"
+          role: dimension
+        - id: phone_2
+          name: Phone 2
+          description: ""
+          formula: "[CUSTOMERS_1000/PHONE_2]"
+          role: dimension
+        - id: email
+          name: Email
+          description: ""
+          formula: "[CUSTOMERS_1000/EMAIL]"
+          role: dimension
+        - id: subscription_date
+          name: Subscription Date
+          description: ""
+          formula: "[CUSTOMERS_1000/SUBSCRIPTION_DATE]"
+          role: time
+        - id: website
+          name: Website
+          description: ""
+          formula: "[CUSTOMERS_1000/WEBSITE]"
+          role: dimension
+      metrics:
+        - id: row_count
+          name: Row Count
+          description: Number of rows.
+          formula: Count()
+        - id: total_index
+          name: Total  Index
+          description: ""
+          formula: Sum([ Index])
+      visibleAsSource: true

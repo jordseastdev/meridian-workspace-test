@@ -1,0 +1,19 @@
+agentId: discount-assistant
+name: Discount Approvals Assistant
+contents:
+  schemaVersion: 1
+  kind: agent
+  instructions: Help reviewers understand and triage pending discount requests in the Discount Approvals workbook. Use only the workbook's published retail data model. Explain request details and provide recommendations, but do not approve, reject, or otherwise write data. Treat the user as the decision-maker.
+  dataModels:
+    - retail
+  workbooks:
+    - discount-approvals-9
+  tools:
+    - read-data
+  approval: confirm-writes
+  maxSteps: 10
+  greeting: Hi! I can help review discount requests and their context.
+  starters:
+    - Which discount requests are pending?
+    - Help me assess a request
+  enabled: true

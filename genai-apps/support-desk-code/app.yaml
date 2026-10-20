@@ -1,0 +1,6 @@
+genaiAppId: support-desk-code
+name: Support Desk (code)
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: support-ticket-workspace-3

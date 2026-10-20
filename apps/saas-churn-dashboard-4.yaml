@@ -1,0 +1,350 @@
+workbookId: saas-churn-dashboard-4
+name: SaaS Account Churn Dashboard
+description: Review churned, at-risk, and healthy SaaS accounts using account lifecycle, billing, and feature-adoption signals.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Account data
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: churn_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billed
+          name: Total Billed
+          formula: "[Total Billed]"
+        - id: unpaid
+          name: Unpaid Invoice Count
+          formula: "[Unpaid Invoice Count]"
+        - id: paid_rate
+          name: Paid Invoice Rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+        - id: adoption_rate
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+        - id: mau
+          name: Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: last_feature
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: last_invoice
+          name: Last Invoice Date
+          formula: "[Last Invoice Date]"
+      visibleAsSource: false
+    - id: churned_total
+      name: Churned Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: Churned Accounts
+          formula: Count()
+      filters:
+        - id: churned
+          kind: formula
+          formula: "[Churned Date] != null"
+      value:
+        columnId: count
+    - id: churned_by_reason
+      name: Churned Accounts by Reason
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: count
+          name: Churned Accounts
+          formula: Count()
+      filters:
+        - id: churned
+          kind: formula
+          formula: "[Churned Date] != null"
+      xAxis:
+        columnId: reason
+        sort:
+          by: count
+          direction: descending
+      yAxis:
+        columnIds:
+          - count
+      color:
+        by: single
+        value: "#4661c9"
+    - id: churned_accounts
+      name: Churned Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: industry
+          name: Industry
+        - id: region
+          name: Region
+        - id: owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: churn_date
+          name: Churned Date
+        - id: churn_reason
+          name: Churn Reason
+        - id: current_plan
+          name: Current Plan
+        - id: billed
+          name: Total Billed
+      filters:
+        - id: churned
+          kind: formula
+          formula: "[Churned Date] != null"
+      sort:
+        - columnId: churn_date
+          direction: descending
+      limit: 500
+    - id: risk_total
+      name: At-Risk Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: At-Risk Accounts
+          formula: Count()
+      filters:
+        - id: active
+          kind: formula
+          formula: "[Churned Date] = null"
+        - id: risk
+          kind: formula
+          formula: '[Unpaid Invoice Count] > 0 or [Adopted Feature Count] < [Feature Record Count] * 0.5 or [Last Feature Use Date] < DateAdd("day", -90, Today())'
+      value:
+        columnId: count
+    - id: risk_accounts
+      name: At-Risk Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: status
+          name: Status
+        - id: current_plan
+          name: Current Plan
+        - id: owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: unpaid
+          name: Unpaid Invoice Count
+        - id: paid_rate
+          name: Paid Invoice Rate
+        - id: adoption_rate
+          name: Adopted Feature Rate
+        - id: mau
+          name: Monthly Active Users
+        - id: last_feature
+          name: Last Feature Use Date
+        - id: billed
+          name: Total Billed
+      filters:
+        - id: active
+          kind: formula
+          formula: "[Churned Date] = null"
+        - id: risk
+          kind: formula
+          formula: '[Unpaid Invoice Count] > 0 or [Adopted Feature Count] < [Feature Record Count] * 0.5 or [Last Feature Use Date] < DateAdd("day", -90, Today())'
+      sort:
+        - columnId: unpaid
+          direction: descending
+      limit: 500
+    - id: healthy_total
+      name: Healthy Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: Healthy Accounts
+          formula: Count()
+      filters:
+        - id: active
+          kind: formula
+          formula: "[Churned Date] = null"
+        - id: healthy
+          kind: formula
+          formula: '[Unpaid Invoice Count] = 0 and [Adopted Feature Count] >= [Feature Record Count] * 0.5 and [Last Feature Use Date] >= DateAdd("day", -90, Today())'
+      value:
+        columnId: count
+    - id: healthy_accounts
+      name: Healthy Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: industry
+          name: Industry
+        - id: region
+          name: Region
+        - id: current_plan
+          name: Current Plan
+        - id: owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: paid_rate
+          name: Paid Invoice Rate
+        - id: adoption_rate
+          name: Adopted Feature Rate
+        - id: mau
+          name: Monthly Active Users
+        - id: last_feature
+          name: Last Feature Use Date
+        - id: billed
+          name: Total Billed
+      filters:
+        - id: active
+          kind: formula
+          formula: "[Churned Date] = null"
+        - id: healthy
+          kind: formula
+          formula: '[Unpaid Invoice Count] = 0 and [Adopted Feature Count] >= [Feature Record Count] * 0.5 and [Last Feature Use Date] >= DateAdd("day", -90, Today())'
+      sort:
+        - columnId: last_feature
+          direction: descending
+      limit: 500
+    - id: plan_filter
+      kind: control
+      controlId: plan
+      controlType: list
+      label: Plan
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: current_plan
+    - id: signup_trend
+      name: Signups by Month
+      kind: line-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: signup_month
+          name: Signup Month
+          formula: DateTrunc("month", [Signup Date])
+        - id: signup_count
+          name: Signups
+          formula: Count()
+      xAxis:
+        columnId: signup_month
+      yAxis:
+        columnIds:
+          - signup_count
+  pages:
+    - id: churned
+      name: Churned Accounts
+      elements:
+        - plan_filter
+        - churned_total
+        - churned_by_reason
+        - signup_trend
+        - churned_accounts
+    - id: at_risk
+      name: At-Risk Accounts
+      elements:
+        - risk_total
+        - risk_accounts
+    - id: healthy
+      name: Healthy Accounts
+      elements:
+        - healthy_total
+        - healthy_accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="churned">
+      <Element elementId="plan_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="churned_total" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="churned_by_reason" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="signup_trend" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="churned_accounts" gridColumn="1 / 25" gridRow="16 / 28"/>
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="28 / 40"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="at_risk">
+      <Element elementId="risk_total" gridColumn="1 / 25" gridRow="1 / 5"/>
+      <Element elementId="risk_accounts" gridColumn="1 / 25" gridRow="5 / 17"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="healthy">
+      <Element elementId="healthy_total" gridColumn="1 / 25" gridRow="1 / 5"/>
+      <Element elementId="healthy_accounts" gridColumn="1 / 25" gridRow="5 / 17"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

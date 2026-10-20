@@ -1,0 +1,16 @@
+deliveryId: weekly-channel-revenue-monday-9am
+name: Weekly Channel Revenue Monday 9am
+contents:
+  schemaVersion: 1
+  kind: delivery
+  schedule: 0 9 * * MON
+  timezone: America/New_York
+  target:
+    workbookId: retail-performance-dashboard-2
+    elementId: channel_revenue
+  format: csv
+  destination:
+    kind: saved
+    destinationId: general-test
+  enabled: true
+  maxRows: 5000

@@ -1,0 +1,395 @@
+workbookId: saas-churn-dashboard-2
+name: SaaS Account Health & Churn
+description: Churn and account health views for SaaS accounts, using account-level adoption and invoice aggregates.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Account source
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: total_monthly_active_users
+          name: Total Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+    - id: filters_churned
+      kind: control
+      controlId: churn_signup_range
+      controlType: date-range
+      label: Signup date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: signup_date
+    - id: churned_count
+      name: Churned Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: count
+          name: Churned Accounts
+          formula: "[Account Count]"
+      filters:
+        - id: churned_only
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Churned
+      value:
+        columnId: count
+    - id: churn_reason
+      name: Accounts by Churn Reason
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: count
+          name: Accounts
+          formula: "[Account Count]"
+      filters:
+        - id: churn_reason_status
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Churned
+      xAxis:
+        columnId: reason
+        sort:
+          by: count
+          direction: descending
+      yAxis:
+        columnIds:
+          - count
+      color:
+        by: single
+        value: "#4661c9"
+      limit: 10
+    - id: churned_accounts
+      name: Churned Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: churned_table_status
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Churned
+      limit: 500
+    - id: filters_risk
+      kind: control
+      controlId: risk_last_use_range
+      controlType: date-range
+      label: Last feature use date
+      value:
+        start: 2022-07-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: last_feature_use_date
+    - id: risk_accounts
+      name: At-Risk Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: total_monthly_active_users
+          name: Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: risk_not_churned
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Active
+        - id: risk_quiet
+          kind: formula
+          formula: '[Status] = "Active" and [Last Feature Use Date] <= "2024-10-08"'
+      limit: 500
+    - id: filters_healthy
+      kind: control
+      controlId: healthy_last_use_range
+      controlType: date-range
+      label: Last feature use date
+      value:
+        start: 2022-07-01
+        end: 2025-09-27
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: last_feature_use_date
+    - id: healthy_count
+      name: Healthy Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: count
+          name: Healthy Accounts
+          formula: "[Account Count]"
+      filters:
+        - id: healthy_active
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Active
+        - id: healthy_recent_use
+          kind: formula
+          formula: '[Last Feature Use Date] >= "2025-06-01" and [Last Feature Use Date] <= "2025-09-27"'
+      value:
+        columnId: count
+    - id: healthy_accounts
+      name: Healthy Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: total_monthly_active_users
+          name: Monthly Active Users
+          formula: "[Total Monthly Active Users]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: healthy_table_active
+          kind: list
+          columnId: status
+          mode: include
+          values:
+            - Active
+        - id: healthy_table_recent
+          kind: formula
+          formula: '[Last Feature Use Date] >= "2025-06-01" and [Last Feature Use Date] <= "2025-09-27"'
+      limit: 500
+  pages:
+    - id: churned
+      name: Churned
+      elements:
+        - filters_churned
+        - churned_count
+        - churn_reason
+        - churned_accounts
+    - id: at_risk
+      name: At Risk
+      elements:
+        - filters_risk
+        - risk_accounts
+    - id: healthy
+      name: Healthy
+      elements:
+        - filters_healthy
+        - healthy_count
+        - healthy_accounts
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="churned">
+      <Element elementId="filters_churned" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="churned_count" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="churn_reason" gridColumn="1 / 25" gridRow="7 / 16"/>
+      <Element elementId="churned_accounts" gridColumn="1 / 25" gridRow="16 / 28"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="at_risk">
+      <Element elementId="filters_risk" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="risk_accounts" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="healthy">
+      <Element elementId="filters_healthy" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="healthy_count" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="healthy_accounts" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

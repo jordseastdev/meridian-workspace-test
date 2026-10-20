@@ -1,0 +1,302 @@
+workbookId: account-health-6
+name: Account Health
+description: Account health overview with adoption, billing, lifecycle, and account-level detail.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: base
+      name: Account health base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: employee_count
+          name: Employee Count
+          formula: "[Employee Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+        - id: adopted_features
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_records
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: paid_invoices
+          name: Paid Invoice Count
+          formula: "[Paid Invoice Count]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+    - id: status_filter
+      kind: control
+      controlId: status_filter
+      controlType: list
+      label: Status
+      filters:
+        - source:
+            kind: table
+            elementId: base
+          columnId: status
+    - id: region_filter
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: base
+          columnId: region
+    - id: signup_filter
+      kind: control
+      controlId: signup_filter
+      controlType: date-range
+      label: Signup date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: base
+          columnId: signup_date
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: ask_assistant
+      text: Ask Account Health Assistant
+      appearance: filled
+      icon: sparkles
+    - id: kpi_accounts
+      name: Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: value
+          name: Accounts
+          formula: "[Account Count]"
+      value:
+        columnId: value
+    - id: kpi_billed
+      name: Total billed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: value
+          name: Total Billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: value
+    - id: kpi_adoption
+      name: Feature adoption
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: value
+          name: Adoption rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_paid
+      name: Paid invoice rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: value
+          name: Paid invoice rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: accounts_by_status
+      name: Accounts by status
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: status
+      yAxis:
+        columnIds:
+          - accounts
+    - id: billed_by_plan
+      name: Total billed by current plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billed
+          name: Total Billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 0
+      xAxis:
+        columnId: plan
+        sort:
+          by: billed
+          direction: descending
+      yAxis:
+        columnIds:
+          - billed
+      limit: 10
+    - id: health_accounts
+      name: Account health details
+      kind: table
+      source:
+        kind: table
+        elementId: base
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+        - id: adopted_features
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: feature_records
+          name: Feature Records
+          formula: "[Feature Record Count]"
+        - id: paid_invoices
+          name: Paid Invoices
+          formula: "[Paid Invoice Count]"
+        - id: invoice_count
+          name: Invoices
+          formula: "[Invoice Count]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+    - id: account_assistant
+      kind: agent
+      agentId: account-health-assistant
+      placeholder: Ask about account health, adoption, billing, or churn context…
+      height: 640
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - status_filter
+        - region_filter
+        - signup_filter
+        - ask_button
+        - kpi_accounts
+        - kpi_billed
+        - kpi_adoption
+        - kpi_paid
+        - accounts_by_status
+        - billed_by_plan
+        - health_accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="status_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="region_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="signup_filter" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ask_button" gridColumn="19 / 23" gridRow="1 / 3"/>
+      <Element elementId="kpi_accounts" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi_billed" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_adoption" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi_paid" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="accounts_by_status" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="billed_by_plan" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="health_accounts" gridColumn="1 / 25" gridRow="16 / 28"/>
+      <Element elementId="base" gridColumn="1 / 25" gridRow="28 / 40"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="ask_assistant">
+      <Element elementId="account_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: ask_assistant
+      kind: drawer
+      title: Account Health Assistant
+      size: large
+      elements:
+        - account_assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

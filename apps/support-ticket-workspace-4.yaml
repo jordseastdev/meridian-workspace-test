@@ -1,0 +1,318 @@
+workbookId: support-ticket-workspace-4
+name: Support Ticket Workspace
+description: Mobile-friendly workspace to triage open support tickets and update ownership, working notes, follow-up dates and closure.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: tickets
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: support_tickets
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Support Tickets/Ticket ID]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Support Tickets/Customer ID]"
+        - id: opened_at
+          name: Opened At
+          formula: "[Support Tickets/Opened At]"
+        - id: contact_channel
+          name: Contact Channel
+          formula: "[Support Tickets/Contact Channel]"
+        - id: category
+          name: Ticket Category
+          formula: "[Support Tickets/Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Support Tickets/Priority]"
+        - id: agent
+          name: Agent
+          formula: "[Support Tickets/Agent]"
+        - id: ticket_status
+          name: Ticket Status
+          formula: "[Support Tickets/Ticket Status]"
+      visibleAsSource: true
+    - id: ticket_work
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: tickets
+        connectionId: default
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          key: ticket_id
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: opened_at
+          name: Opened At
+          formula: "[Opened At]"
+        - id: contact_channel
+          name: Contact Channel
+          formula: "[Contact Channel]"
+        - id: category
+          name: Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: ticket_status
+          name: Ticket Status
+          formula: "[Ticket Status]"
+        - id: assigned_to
+          name: Assigned To
+          type: text
+        - id: working_note
+          name: Working Note
+          type: text
+          multiline: true
+        - id: follow_up_date
+          name: Follow-up Date
+          type: date
+        - id: closed
+          name: Closed
+          type: checkbox
+    - id: selected_ticket
+      kind: control
+      controlId: selected_ticket
+      controlType: text
+      label: Selected ticket
+    - id: open_count
+      name: Open Tickets
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: open_queue
+      columns:
+        - id: count
+          name: Open Tickets
+          formula: Count([Ticket ID])
+      value:
+        columnId: count
+    - id: category_chart
+      name: Open Tickets by Category
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: open_queue
+      columns:
+        - id: category
+          name: Category
+        - id: count
+          name: Open Tickets
+          formula: Count([Ticket ID])
+      xAxis:
+        columnId: category
+        sort:
+          by: count
+          direction: descending
+      yAxis:
+        columnIds:
+          - count
+      color:
+        by: single
+        value: "#0f766e"
+    - id: priority_chart
+      name: Open Tickets by Priority
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: open_queue
+      columns:
+        - id: priority
+          name: Priority
+        - id: count
+          name: Open Tickets
+          formula: Count([Ticket ID])
+      xAxis:
+        columnId: priority
+        sort:
+          by: count
+          direction: descending
+      yAxis:
+        columnIds:
+          - count
+      color:
+        by: single
+        value: "#0f766e"
+    - id: open_queue
+      name: Open Ticket Queue
+      kind: table
+      actions:
+        - id: open_ticket
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_ticket
+              value:
+                type: selection
+                columnId: ticket_id
+            - effect: open-overlay
+              overlayId: ticket_detail
+      source:
+        kind: table
+        elementId: ticket_work
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+        - id: opened_at
+          name: Opened At
+        - id: category
+          name: Category
+        - id: priority
+          name: Priority
+        - id: ticket_status
+          name: Status
+          formula: "[Ticket Status]"
+        - id: assigned_to
+          name: Assigned To
+      filters:
+        - id: open_only
+          kind: formula
+          formula: Coalesce([Closed], false) = false and [Ticket Status] = "Open"
+      display: cards
+      card:
+        title: ticket_id
+        subtitle: category
+        status: priority
+        fields:
+          - opened_at
+          - ticket_status
+          - assigned_to
+    - id: ticket_record
+      name: Ticket Details
+      kind: table
+      source:
+        kind: table
+        elementId: ticket_work
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+        - id: category
+          name: Category
+        - id: priority
+          name: Priority
+        - id: ticket_status
+          name: Status
+          formula: "[Ticket Status]"
+        - id: opened_at
+          name: Opened At
+        - id: contact_channel
+          name: Contact Channel
+        - id: customer_id
+          name: Customer ID
+        - id: assigned_to
+          name: Assigned To
+        - id: working_note
+          name: Working Note
+        - id: follow_up_date
+          name: Follow-up Date
+      filters:
+        - id: selected
+          kind: formula
+          formula: "[Ticket ID] = [selected_ticket]"
+      display: record
+      card:
+        title: ticket_id
+        subtitle: category
+        status: priority
+        fields:
+          - ticket_status
+          - opened_at
+          - contact_channel
+          - customer_id
+          - assigned_to
+          - working_note
+          - follow_up_date
+    - id: ticket_form
+      kind: form
+      title: Update Ticket
+      tableElementId: ticket_work
+      fields:
+        - assigned_to
+        - working_note
+        - follow_up_date
+        - closed
+      submitText: Save Updates
+      editRow:
+        control: selected_ticket
+        columnId: ticket_id
+    - id: ask_support_agent
+      kind: button
+      actions:
+        - id: open_support_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: support_assistant
+      text: Ask Support Assistant
+      appearance: filled
+      icon: sparkles
+    - id: support_assistant
+      kind: agent
+      agentId: support-ticket-assistant-3
+      placeholder: Ask about ticket trends or triage...
+      height: 520
+  pages:
+    - id: workspace
+      name: Ticket Workspace
+      elements:
+        - open_count
+        - category_chart
+        - priority_chart
+        - ask_support_agent
+        - open_queue
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - tickets
+        - ticket_work
+        - selected_ticket
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="workspace">
+      <Element elementId="open_count" gridColumn="1 / 25" gridRow="1 / 5"/>
+      <Element elementId="category_chart" gridColumn="1 / 13" gridRow="5 / 14"/>
+      <Element elementId="priority_chart" gridColumn="13 / 25" gridRow="5 / 14"/>
+      <Element elementId="ask_support_agent" gridColumn="1 / 5" gridRow="14 / 16"/>
+      <Element elementId="open_queue" gridColumn="1 / 25" gridRow="16 / 28"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="tickets" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="ticket_work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="selected_ticket" gridColumn="1 / 7" gridRow="25 / 27"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="ticket_detail">
+      <Element elementId="ticket_record" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="ticket_form" gridColumn="1 / 25" gridRow="13 / 21"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="support_assistant">
+      <Element elementId="support_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: ticket_detail
+      kind: drawer
+      title: Ticket Details
+      size: large
+      elements:
+        - ticket_record
+        - ticket_form
+    - id: support_assistant
+      kind: drawer
+      title: Support Assistant
+      size: large
+      elements:
+        - support_assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

@@ -1,0 +1,248 @@
+workbookId: saas-churn-dashboard-10
+name: SaaS Account Churn Dashboard
+description: Account-level churn view with separate tabs for churned, at-risk, and healthy accounts.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: account_base
+      name: Account Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: converted_date
+          name: Converted Date
+          formula: "[Converted Date]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: paid_invoice_rate
+          name: Paid Invoice Rate
+          formula: SafeDivide([Paid Invoice Count], [Invoice Count])
+          format:
+            kind: percent
+            decimals: 1
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      visibleAsSource: true
+    - id: churned_accounts
+      name: Churned Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: churned_only
+          kind: formula
+          formula: '[Status] = "Churned"'
+      sort:
+        - columnId: churned_date
+          direction: descending
+      limit: 500
+    - id: at_risk_accounts
+      name: At-Risk Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: active_status
+          kind: formula
+          formula: '[Status] = "Active"'
+        - id: quiet
+          kind: formula
+          formula: '[Last Feature Use Date] <= DateAdd("day", -90, Date("2025-09-27"))'
+      sort:
+        - columnId: last_feature_use_date
+          direction: ascending
+      limit: 500
+    - id: healthy_accounts
+      name: Healthy Accounts
+      kind: table
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+      filters:
+        - id: active_status
+          kind: formula
+          formula: '[Status] = "Active"'
+        - id: recent_use
+          kind: formula
+          formula: '[Last Feature Use Date] > DateAdd("day", -90, Date("2025-09-27"))'
+      sort:
+        - columnId: last_feature_use_date
+          direction: descending
+      limit: 500
+  pages:
+    - id: churn_dashboard
+      name: Churn Dashboard
+    - id: churned_page
+      name: Churned
+      elements:
+        - churned_accounts
+    - id: at_risk_page
+      name: At Risk
+      elements:
+        - at_risk_accounts
+    - id: healthy_page
+      name: Healthy
+      elements:
+        - healthy_accounts
+    - id: hidden_data
+      name: Data
+      visibility: hidden
+      elements:
+        - account_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="churn_dashboard"/>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="churned_page">
+      <Element elementId="churned_accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="at_risk_page">
+      <Element elementId="at_risk_accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="healthy_page">
+      <Element elementId="healthy_accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="hidden_data">
+      <Element elementId="account_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

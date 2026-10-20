@@ -1,0 +1,297 @@
+dataModelId: saas-account-obt
+name: SaaS Account-Level OBT
+description: One row per account with rolled-up feature adoption and invoice activity.
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: account_obt
+      name: Account OBT
+      description: One row per customer account with account attributes and child-table aggregates at account grain. Use for broad listings or overviews of SaaS accounts, returning account-level attributes and aggregates when no narrower scope or filter is requested.
+      kind: table
+      source:
+        kind: sql
+        connectionId: default
+        statement: |
+          WITH f AS (
+            SELECT ACCOUNT_ID, COUNT(*) FEATURE_RECORD_COUNT,
+              SUM(CASE WHEN ADOPTED = TRUE THEN 1 ELSE 0 END) ADOPTED_FEATURE_COUNT,
+              SUM(COALESCE(MONTHLY_ACTIVE_USERS,0)) TOTAL_MONTHLY_ACTIVE_USERS,
+              COUNT(DISTINCT FEATURE_CATEGORY) FEATURE_CATEGORY_COUNT,
+              MIN(FIRST_USED_DATE) FIRST_FEATURE_USE_DATE, MAX(LAST_USED_DATE) LAST_FEATURE_USE_DATE
+            FROM MERIDIAN.SAAS.FEATURE_ADOPTION GROUP BY ACCOUNT_ID
+          ), i AS (
+            SELECT ACCOUNT_ID, COUNT(*) INVOICE_COUNT, SUM(COALESCE(SEATS,0)) TOTAL_INVOICE_SEATS,
+              SUM(COALESCE(AMOUNT,0)) TOTAL_INVOICE_AMOUNT, SUM(COALESCE(TAX,0)) TOTAL_INVOICE_TAX,
+              SUM(COALESCE(TOTAL,0)) TOTAL_BILLED,
+              SUM(CASE WHEN STATUS = 'Paid' THEN 1 ELSE 0 END) PAID_INVOICE_COUNT,
+              SUM(CASE WHEN STATUS <> 'Paid' THEN 1 ELSE 0 END) UNPAID_INVOICE_COUNT,
+              MIN(INVOICE_DATE) FIRST_INVOICE_DATE, MAX(INVOICE_DATE) LAST_INVOICE_DATE, MAX(PAID_DATE) LAST_PAID_DATE
+            FROM MERIDIAN.SAAS.INVOICES GROUP BY ACCOUNT_ID
+          )
+          SELECT a.*, COALESCE(f.FEATURE_RECORD_COUNT,0) FEATURE_RECORD_COUNT,
+            COALESCE(f.ADOPTED_FEATURE_COUNT,0) ADOPTED_FEATURE_COUNT,
+            COALESCE(f.TOTAL_MONTHLY_ACTIVE_USERS,0) TOTAL_MONTHLY_ACTIVE_USERS,
+            COALESCE(f.FEATURE_CATEGORY_COUNT,0) FEATURE_CATEGORY_COUNT,
+            f.FIRST_FEATURE_USE_DATE, f.LAST_FEATURE_USE_DATE,
+            COALESCE(i.INVOICE_COUNT,0) INVOICE_COUNT, COALESCE(i.TOTAL_INVOICE_SEATS,0) TOTAL_INVOICE_SEATS,
+            COALESCE(i.TOTAL_INVOICE_AMOUNT,0) TOTAL_INVOICE_AMOUNT, COALESCE(i.TOTAL_INVOICE_TAX,0) TOTAL_INVOICE_TAX,
+            COALESCE(i.TOTAL_BILLED,0) TOTAL_BILLED, COALESCE(i.PAID_INVOICE_COUNT,0) PAID_INVOICE_COUNT,
+            COALESCE(i.UNPAID_INVOICE_COUNT,0) UNPAID_INVOICE_COUNT,
+            i.FIRST_INVOICE_DATE, i.LAST_INVOICE_DATE, i.LAST_PAID_DATE
+          FROM MERIDIAN.SAAS.ACCOUNTS a
+          LEFT JOIN f ON a.ACCOUNT_ID=f.ACCOUNT_ID LEFT JOIN i ON a.ACCOUNT_ID=i.ACCOUNT_ID
+      columns:
+        - id: account_id
+          name: Account ID
+          description: Account identifier.
+          formula: "[ACCOUNT_OBT/ACCOUNT_ID]"
+          role: identifier
+        - id: account_name
+          name: Account Name
+          description: Account name.
+          formula: "[ACCOUNT_OBT/ACCOUNT_NAME]"
+          role: dimension
+        - id: domain
+          name: Domain
+          description: Customer domain.
+          formula: "[ACCOUNT_OBT/DOMAIN]"
+          role: dimension
+        - id: industry
+          name: Industry
+          description: Industry.
+          formula: "[ACCOUNT_OBT/INDUSTRY]"
+          role: dimension
+        - id: company_size
+          name: Company Size
+          description: Company size.
+          formula: "[ACCOUNT_OBT/COMPANY_SIZE]"
+          role: dimension
+        - id: employee_count
+          name: Employee Count
+          description: Employee count.
+          formula: "[ACCOUNT_OBT/EMPLOYEE_COUNT]"
+          role: measure
+        - id: region
+          name: Region
+          description: Region.
+          formula: "[ACCOUNT_OBT/REGION]"
+          role: dimension
+        - id: acquisition_source
+          name: Acquisition Source
+          description: Acquisition source.
+          formula: "[ACCOUNT_OBT/ACQUISITION_SOURCE]"
+          role: dimension
+        - id: signup_date
+          name: Signup Date
+          description: Signup date.
+          formula: "[ACCOUNT_OBT/SIGNUP_DATE]"
+          role: time
+        - id: converted_date
+          name: Converted Date
+          description: Conversion date.
+          formula: "[ACCOUNT_OBT/CONVERTED_DATE]"
+          role: time
+        - id: churned_date
+          name: Churned Date
+          description: Churn date.
+          formula: "[ACCOUNT_OBT/CHURNED_DATE]"
+          role: time
+        - id: starting_plan
+          name: Starting Plan
+          description: Starting plan.
+          formula: "[ACCOUNT_OBT/STARTING_PLAN]"
+          role: dimension
+        - id: current_plan
+          name: Current Plan
+          description: Current plan.
+          formula: "[ACCOUNT_OBT/CURRENT_PLAN]"
+          role: dimension
+        - id: plan_changed_date
+          name: Plan Changed Date
+          description: Plan change date.
+          formula: "[ACCOUNT_OBT/PLAN_CHANGED_DATE]"
+          role: time
+        - id: billing_period
+          name: Billing Period
+          description: Billing cadence.
+          formula: "[ACCOUNT_OBT/BILLING_PERIOD]"
+          role: dimension
+        - id: contract_discount
+          name: Contract Discount
+          description: Discount ratio.
+          formula: "[ACCOUNT_OBT/CONTRACT_DISCOUNT]"
+          format:
+            kind: percent
+            decimals: 1
+          role: measure
+        - id: starting_seats
+          name: Starting Seats
+          description: Starting seats.
+          formula: "[ACCOUNT_OBT/STARTING_SEATS]"
+          role: measure
+        - id: status
+          name: Status
+          description: Lifecycle status.
+          formula: "[ACCOUNT_OBT/STATUS]"
+          role: dimension
+        - id: churn_reason
+          name: Churn Reason
+          description: Churn reason.
+          formula: "[ACCOUNT_OBT/CHURN_REASON]"
+          role: dimension
+        - id: account_owner
+          name: Account Owner
+          description: Account owner.
+          formula: "[ACCOUNT_OBT/ACCOUNT_OWNER]"
+          role: dimension
+        - id: csm
+          name: CSM
+          description: Customer success manager.
+          formula: "[ACCOUNT_OBT/CSM]"
+          role: dimension
+        - id: feature_record_count
+          name: Feature Record Count
+          description: Feature records.
+          formula: "[ACCOUNT_OBT/FEATURE_RECORD_COUNT]"
+          role: measure
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          description: Adopted features.
+          formula: "[ACCOUNT_OBT/ADOPTED_FEATURE_COUNT]"
+          role: measure
+        - id: total_monthly_active_users
+          name: Total Monthly Active Users
+          description: Monthly active users summed across features.
+          formula: "[ACCOUNT_OBT/TOTAL_MONTHLY_ACTIVE_USERS]"
+          role: measure
+        - id: feature_category_count
+          name: Feature Category Count
+          description: Distinct feature categories.
+          formula: "[ACCOUNT_OBT/FEATURE_CATEGORY_COUNT]"
+          role: measure
+        - id: first_feature_use_date
+          name: First Feature Use Date
+          description: Earliest feature use.
+          formula: "[ACCOUNT_OBT/FIRST_FEATURE_USE_DATE]"
+          role: time
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          description: Latest feature use.
+          formula: "[ACCOUNT_OBT/LAST_FEATURE_USE_DATE]"
+          role: time
+        - id: invoice_count
+          name: Invoice Count
+          description: Invoice count.
+          formula: "[ACCOUNT_OBT/INVOICE_COUNT]"
+          role: measure
+        - id: total_invoice_seats
+          name: Total Invoice Seats
+          description: Seats billed summed across invoices.
+          formula: "[ACCOUNT_OBT/TOTAL_INVOICE_SEATS]"
+          role: measure
+        - id: total_invoice_amount
+          name: Total Invoice Amount
+          description: Invoice amount before tax.
+          formula: "[ACCOUNT_OBT/TOTAL_INVOICE_AMOUNT]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: total_invoice_tax
+          name: Total Invoice Tax
+          description: Invoice tax.
+          formula: "[ACCOUNT_OBT/TOTAL_INVOICE_TAX]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: total_billed
+          name: Total Billed
+          description: Invoice totals including tax.
+          formula: "[ACCOUNT_OBT/TOTAL_BILLED]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: paid_invoice_count
+          name: Paid Invoice Count
+          description: Paid invoices.
+          formula: "[ACCOUNT_OBT/PAID_INVOICE_COUNT]"
+          role: measure
+        - id: unpaid_invoice_count
+          name: Unpaid Invoice Count
+          description: Unpaid invoices.
+          formula: "[ACCOUNT_OBT/UNPAID_INVOICE_COUNT]"
+          role: measure
+        - id: first_invoice_date
+          name: First Invoice Date
+          description: Earliest invoice date.
+          formula: "[ACCOUNT_OBT/FIRST_INVOICE_DATE]"
+          role: time
+        - id: last_invoice_date
+          name: Last Invoice Date
+          description: Latest invoice date.
+          formula: "[ACCOUNT_OBT/LAST_INVOICE_DATE]"
+          role: time
+        - id: last_paid_date
+          name: Last Paid Date
+          description: Latest paid date.
+          formula: "[ACCOUNT_OBT/LAST_PAID_DATE]"
+          role: time
+      metrics:
+        - id: account_count
+          name: Account Count
+          description: Number of accounts.
+          formula: Count()
+        - id: total_employees
+          name: Total Employees
+          description: Employees represented across accounts.
+          formula: Sum([Employee Count])
+        - id: total_billed_metric
+          name: Total Billed Across Accounts
+          description: Invoice totals including tax across accounts.
+          formula: Sum([Total Billed])
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_feature_rate
+          name: Adopted Feature Rate
+          description: Share of feature records adopted.
+          formula: SafeDivide(Sum([Adopted Feature Count]), Sum([Feature Record Count]))
+          format:
+            kind: percent
+            decimals: 1
+        - id: paid_invoice_rate
+          name: Paid Invoice Rate
+          description: Share of invoices paid.
+          formula: SafeDivide(Sum([Paid Invoice Count]), Sum([Invoice Count]))
+          format:
+            kind: percent
+            decimals: 1
+        - id: average_billed_per_account
+          name: Average Billed per Account
+          description: Average billed total per account.
+          formula: SafeDivide(Sum([Total Billed]), Count())
+          format:
+            kind: currency
+            decimals: 2
+      visibleAsSource: true
+  verifiedQueries:
+    - question: How does billed revenue vary by current plan?
+      elementId: account_obt
+      dimensions:
+        - "[Current Plan]"
+      measures:
+        - Total Billed Across Accounts
+      verifiedBy: demo@meridian.local
+      verifiedAt: 2026-10-20
+    - question: Which regions have the highest paid invoice rate?
+      elementId: account_obt
+      dimensions:
+        - "[Region]"
+      measures:
+        - Paid Invoice Rate
+      notes: Compares the paid share of invoices across regions.
+      verifiedBy: demo@meridian.local
+      verifiedAt: 2026-10-20

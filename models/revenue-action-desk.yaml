@@ -1,0 +1,183 @@
+dataModelId: revenue-action-desk
+name: Revenue Action Desk
+contents:
+  schemaVersion: 1
+  kind: data-model
+  elements:
+    - id: accounts
+      name: Accounts
+      description: One row per account. Subscription, invoice, feature and opportunity facts are aggregated separately before joining to avoid duplication. Signals are review prompts, not predictions or causal impact.
+      kind: table
+      source:
+        kind: sql
+        connectionId: default
+        statement: |
+          WITH s AS (
+            SELECT account_id, SUM(current_mrr) AS active_mrr, SUM(current_seats) AS seats,
+              MIN(first_renewal_date) AS first_renewal_date,
+              SUM(CASE WHEN NOT auto_renew THEN 1 ELSE 0 END) AS manual_renewals
+            FROM saas.subscriptions WHERE status = 'Active' GROUP BY account_id
+          ), i AS (
+            SELECT account_id,
+              SUM(CASE WHEN status = 'Past Due' THEN total ELSE 0 END) AS past_due_total,
+              SUM(CASE WHEN status = 'Open' THEN total ELSE 0 END) AS open_invoice_total,
+              MAX(invoice_date) AS latest_invoice_date
+            FROM saas.invoices GROUP BY account_id
+          ), f AS (
+            SELECT account_id, COUNT(*) AS tracked_features,
+              SUM(CASE WHEN adopted THEN 1 ELSE 0 END) AS adopted_features,
+              MAX(last_used_date) AS last_feature_use
+            FROM saas.feature_adoption GROUP BY account_id
+          ), o AS (
+            SELECT account_id, SUM(amount) AS open_pipeline,
+              COUNT(*) AS open_deals, MIN(close_date) AS next_deal_close
+            FROM saas.opportunities WHERE stage NOT IN ('Closed Won', 'Closed Lost') GROUP BY account_id
+          )
+          SELECT a.account_id, a.account_name, a.status AS account_status, a.industry, a.region,
+            a.account_owner, a.csm, a.current_plan, p.monthly_price_per_seat,
+            COALESCE(s.active_mrr,0) AS active_mrr, COALESCE(s.seats,0) AS seats,
+            s.first_renewal_date, COALESCE(s.manual_renewals,0) AS manual_renewals,
+            COALESCE(i.past_due_total,0) AS past_due_total,
+            COALESCE(i.open_invoice_total,0) AS open_invoice_total, i.latest_invoice_date,
+            COALESCE(f.tracked_features,0) AS tracked_features,
+            COALESCE(f.adopted_features,0) AS adopted_features, f.last_feature_use,
+            COALESCE(o.open_pipeline,0) AS open_pipeline, COALESCE(o.open_deals,0) AS open_deals,
+            o.next_deal_close
+          FROM saas.accounts a
+          LEFT JOIN s ON a.account_id=s.account_id
+          LEFT JOIN i ON a.account_id=i.account_id
+          LEFT JOIN f ON a.account_id=f.account_id
+          LEFT JOIN o ON a.account_id=o.account_id
+          LEFT JOIN saas.plans p ON a.current_plan=p.plan_name
+      columns:
+        - id: account_id
+          name: Account ID
+          description: Unique account identifier.
+          formula: "[account_id]"
+          role: identifier
+        - id: account_name
+          name: Account
+          description: Account name.
+          formula: "[account_name]"
+          role: dimension
+        - id: account_status
+          name: Account Status
+          description: Source account lifecycle status.
+          formula: "[account_status]"
+          role: dimension
+        - id: industry
+          name: Industry
+          description: Account industry.
+          formula: "[industry]"
+          role: dimension
+        - id: region
+          name: Region
+          description: Account region.
+          formula: "[region]"
+          role: dimension
+        - id: account_owner
+          name: Account Owner
+          description: Source account owner.
+          formula: "[account_owner]"
+          role: dimension
+        - id: csm
+          name: CSM
+          description: Source customer success manager.
+          formula: "[csm]"
+          role: dimension
+        - id: plan
+          name: Plan
+          description: Current account plan.
+          formula: "[current_plan]"
+          role: dimension
+        - id: price
+          name: Monthly List Price Per Seat
+          description: Published monthly seat price; not contracted price.
+          formula: "[monthly_price_per_seat]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: mrr
+          name: Active MRR
+          description: Sum of current MRR on Active subscriptions only.
+          formula: "[active_mrr]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: seats
+          name: Active Seats
+          description: Sum of seats on Active subscriptions.
+          formula: "[seats]"
+          role: measure
+        - id: renewal
+          name: First Renewal Date
+          description: Earliest recorded first renewal date among active subscriptions; not necessarily the next renewal.
+          formula: "[first_renewal_date]"
+          role: time
+        - id: manual
+          name: Manual Renewal Subscriptions
+          description: Number of active subscriptions without auto renewal.
+          formula: "[manual_renewals]"
+          role: measure
+        - id: past_due
+          name: Past Due Total
+          description: Invoice totals including tax with source status Past Due.
+          formula: "[past_due_total]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: open_invoices
+          name: Open Invoice Total
+          description: Invoice totals including tax with source status Open; separate from past due.
+          formula: "[open_invoice_total]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: latest_invoice
+          name: Latest Invoice Date
+          description: Latest recorded invoice date for freshness context.
+          formula: "[latest_invoice_date]"
+          role: time
+        - id: tracked
+          name: Tracked Features
+          description: Feature rows tracked for the account; not all necessarily eligible on its plan.
+          formula: "[tracked_features]"
+          role: measure
+        - id: adopted
+          name: Adopted Features
+          description: Feature rows marked adopted.
+          formula: "[adopted_features]"
+          role: measure
+        - id: last_use
+          name: Last Feature Use
+          description: Latest recorded feature use; not a complete account activity feed.
+          formula: "[last_feature_use]"
+          role: time
+        - id: pipeline
+          name: Open Pipeline
+          description: Unweighted amount of opportunities not Closed Won or Closed Lost; not booked revenue.
+          formula: "[open_pipeline]"
+          format:
+            kind: currency
+            decimals: 2
+          role: measure
+        - id: deals
+          name: Open Deals
+          description: Count of opportunities not Closed Won or Closed Lost.
+          formula: "[open_deals]"
+          role: measure
+        - id: close
+          name: Next Open Deal Close
+          description: Earliest recorded close date on open opportunities; may be historical.
+          formula: "[next_deal_close]"
+          role: time
+      metrics:
+        - id: accounts
+          name: Account Count
+          description: Unique accounts.
+          formula: CountDistinct([Account ID])
+      visibleAsSource: true

@@ -1,0 +1,204 @@
+workbookId: discount-request-review-8
+name: Discount Request Review
+description: Managers review open discount requests and record an approval or rejection with a note.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: deals_base
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: deals_source
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Deal ID
+          key: deal_id
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          type: text
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+        - id: discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+        - id: age_days
+          name: Age Days
+          formula: "[Age Days]"
+        - id: decision_note
+          name: Decision Note
+          type: text
+          multiline: true
+    - id: status_filter
+      kind: control
+      controlId: status_filter
+      controlType: list
+      label: Status
+      value: Open
+      options:
+        - Open
+        - Approved
+        - Rejected
+      filters:
+        - source:
+            kind: table
+            elementId: deals_base
+          columnId: status
+    - id: deal_queue
+      name: Discount requests
+      kind: table
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: deal_id
+          name: Deal ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: status
+          name: Status
+        - id: list_amount
+          name: List Amount
+        - id: discount
+          name: Submitted Discount
+        - id: age_days
+          name: Age Days
+        - id: decision_note
+          name: Decision Note
+      sort:
+        - columnId: age_days
+          direction: descending
+      limit: 200
+    - id: decision_note
+      kind: control
+      controlId: decision_note
+      controlType: text-area
+      label: Decision note
+      placeholder: Add a rationale for the decision
+    - id: approve
+      kind: button
+      actions:
+        - id: approve_action
+          trigger: on-click
+          confirm: Approve the selected request? This will update its deal status and note.
+          effects:
+            - effect: update-rows
+              tableElementId: deals_base
+              whichRows:
+                type: selected
+              values:
+                status:
+                  type: constant
+                  value: Approved
+                decision_note:
+                  type: control
+                  control: decision_note
+      text: Approve
+      appearance: filled
+    - id: reject
+      kind: button
+      actions:
+        - id: reject_action
+          trigger: on-click
+          confirm: Reject the selected request? This will update its deal status and note.
+          effects:
+            - effect: update-rows
+              tableElementId: deals_base
+              whichRows:
+                type: selected
+              values:
+                status:
+                  type: constant
+                  value: Rejected
+                decision_note:
+                  type: control
+                  control: decision_note
+      text: Reject
+      appearance: danger
+    - id: deals_source
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[Deals/Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Deals/Account]"
+        - id: owner
+          name: Owner
+          formula: "[Deals/Owner]"
+        - id: region
+          name: Region
+          formula: "[Deals/Region]"
+        - id: stage
+          name: Stage
+          formula: "[Deals/Stage]"
+        - id: status
+          name: Status
+          formula: "[Deals/Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[Deals/List Amount]"
+        - id: discount
+          name: Submitted Discount
+          formula: "[Deals/Submitted Discount]"
+        - id: age_days
+          name: Age Days
+          formula: "[Deals/Age Days]"
+  pages:
+    - id: review
+      name: Review Requests
+      elements:
+        - status_filter
+        - deal_queue
+        - decision_note
+        - approve
+        - reject
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - deals_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="review">
+      <Element elementId="status_filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="deal_queue" gridColumn="1 / 25" gridRow="3 / 15"/>
+      <Element elementId="decision_note" gridColumn="1 / 7" gridRow="15 / 17"/>
+      <Element elementId="approve" gridColumn="7 / 11" gridRow="15 / 17"/>
+      <Element elementId="reject" gridColumn="11 / 15" gridRow="15 / 17"/>
+      <Element elementId="deals_source" gridColumn="1 / 25" gridRow="17 / 29"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="deals_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

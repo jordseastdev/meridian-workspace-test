@@ -1,0 +1,312 @@
+workbookId: pirate-account-explorer
+name: Pirate Account Explorer
+description: A pirate-themed captain’s deck for exploring account health, adoption, and billed treasure.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Account base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: company_size
+          name: Company Size
+          formula: "[Company Size]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_features
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: feature_records
+          name: Feature Records
+          formula: "[Feature Record Count]"
+        - id: paid_invoices
+          name: Paid Invoices
+          formula: "[Paid Invoice Count]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+      limit: 1000
+    - id: flt-region
+      kind: control
+      controlId: region
+      controlType: list
+      label: Waters
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: region
+    - id: flt-status
+      kind: control
+      controlId: status
+      controlType: list
+      label: Account status
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: status
+    - id: flt-signup
+      kind: control
+      controlId: signup_date
+      controlType: date-range
+      label: Voyage began
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: signup_date
+    - id: kpi-accounts
+      name: Crew of accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: v
+          name: Accounts
+          formula: "[Account Count]"
+      value:
+        columnId: v
+    - id: kpi-billed
+      name: Billed treasure
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: v
+          name: Billed treasure
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: v
+    - id: kpi-adoption
+      name: Feature adoption
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: v
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: kpi-paid
+      name: Paid invoice rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: v
+          name: Paid Invoice Rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: v
+    - id: chart-plan
+      name: Accounts by current plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: accounts_n
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: plan
+        sort:
+          by: accounts_n
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts_n
+      color:
+        by: single
+        value: "#0f766e"
+    - id: chart-region
+      name: Billed treasure by region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: billed
+          name: Billed treasure
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      xAxis:
+        columnId: region
+        sort:
+          by: billed
+          direction: descending
+      yAxis:
+        columnIds:
+          - billed
+      color:
+        by: single
+        value: "#d97706"
+    - id: chart-adoption
+      name: Feature adoption by industry
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: adoption
+          name: Adoption rate
+          formula: SafeDivide(Sum([Adopted Feature Count]), Sum([Feature Record Count]))
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: industry
+        sort:
+          by: adoption
+          direction: descending
+      yAxis:
+        columnIds:
+          - adoption
+      color:
+        by: scale
+        column: adoption
+        scheme: teals
+      limit: 10
+    - id: account-manifest
+      name: Account manifest
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: current_plan
+          name: Plan
+          formula: "[Current Plan]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: total_billed
+          name: Billed treasure
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_features
+          name: Adopted features
+          formula: "[Adopted Feature Count]"
+        - id: feature_records
+          name: Feature records
+          formula: "[Feature Record Count]"
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+  pages:
+    - id: captains-deck
+      name: Captain’s Deck
+      elements:
+        - flt-region
+        - flt-status
+        - flt-signup
+        - kpi-accounts
+        - kpi-billed
+        - kpi-adoption
+        - kpi-paid
+        - chart-plan
+        - chart-region
+        - chart-adoption
+        - account-manifest
+    - id: hold
+      name: Hold
+      visibility: hidden
+      elements:
+        - accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="captains-deck">
+      <Element elementId="flt-region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="flt-status" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="flt-signup" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="kpi-accounts" gridColumn="1 / 7" gridRow="3 / 7"/>
+      <Element elementId="kpi-billed" gridColumn="7 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi-adoption" gridColumn="13 / 19" gridRow="3 / 7"/>
+      <Element elementId="kpi-paid" gridColumn="19 / 25" gridRow="3 / 7"/>
+      <Element elementId="chart-plan" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="chart-region" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="chart-adoption" gridColumn="1 / 25" gridRow="16 / 25"/>
+      <Element elementId="account-manifest" gridColumn="1 / 25" gridRow="25 / 37"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="hold">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: midnight
+      palette: ocean

@@ -1,0 +1,218 @@
+workbookId: revenue-action-desk-app
+name: Revenue Action Desk Data
+tags:
+  - genai-data
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Accounts
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: revenue-action-desk
+        elementId: accounts
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: status
+          name: Account Status
+          formula: "[Account Status]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: price
+          name: Monthly List Price Per Seat
+          formula: "[Monthly List Price Per Seat]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: mrr
+          name: Active MRR
+          formula: "[Active MRR]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: seats
+          name: Active Seats
+          formula: "[Active Seats]"
+        - id: renewal
+          name: First Renewal Date
+          formula: "[First Renewal Date]"
+        - id: manual
+          name: Manual Renewal Subscriptions
+          formula: "[Manual Renewal Subscriptions]"
+        - id: past_due
+          name: Past Due Total
+          formula: "[Past Due Total]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: open_invoice
+          name: Open Invoice Total
+          formula: "[Open Invoice Total]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: invoice_date
+          name: Latest Invoice Date
+          formula: "[Latest Invoice Date]"
+        - id: tracked
+          name: Tracked Features
+          formula: "[Tracked Features]"
+        - id: adopted
+          name: Adopted Features
+          formula: "[Adopted Features]"
+        - id: last_use
+          name: Last Feature Use
+          formula: "[Last Feature Use]"
+        - id: pipeline
+          name: Open Pipeline
+          formula: "[Open Pipeline]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: deals
+          name: Open Deals
+          formula: "[Open Deals]"
+        - id: close
+          name: Next Open Deal Close
+          formula: "[Next Open Deal Close]"
+    - id: account_work
+      name: Account Action Plans
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: accounts
+        connectionId: default
+      columns:
+        - id: account_id
+          name: Account ID
+          key: account_id
+        - id: assignee
+          name: Action Owner
+          type: text
+        - id: priority
+          name: Priority
+          type: text
+          values:
+            - High
+            - Medium
+            - Low
+        - id: work_status
+          name: Work Status
+          type: text
+          values:
+            - Not started
+            - In progress
+            - Blocked
+            - Done
+        - id: next_step
+          name: Next Step
+          type: text
+          multiline: true
+        - id: due_date
+          name: Follow Up Date
+          type: date
+    - id: outcomes
+      name: Action and Outcome Log
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: entry_id
+          name: Entry ID
+          type: text
+          default:
+            kind: id
+            prefix: ACT-
+          required: true
+        - id: account_id
+          name: Account ID
+          type: number
+          required: true
+        - id: category
+          name: Category
+          type: text
+          values:
+            - Collections
+            - Expansion
+            - Adoption
+            - Renewal review
+            - Other
+          required: true
+        - id: entry_type
+          name: Entry Type
+          type: text
+          values:
+            - Action
+            - Outcome
+          required: true
+        - id: summary
+          name: Summary
+          type: text
+          multiline: true
+          required: true
+        - id: amount
+          name: Reported Amount
+          type: number
+          min: 0
+        - id: amount_type
+          name: Amount Type
+          type: text
+          values:
+            - Cash collected
+            - New MRR
+            - Pipeline influenced
+            - Other
+        - id: evidence
+          name: Evidence
+          type: text
+          multiline: true
+        - id: created_by
+          name: Created By
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: created_at
+          name: Created At
+          type: datetime
+          default:
+            kind: now
+          readOnly: true
+  pages:
+    - id: data
+      name: Data
+      elements:
+        - accounts
+        - account_work
+        - outcomes
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="account_work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="outcomes" gridColumn="1 / 25" gridRow="25 / 37"/>
+    </Page>

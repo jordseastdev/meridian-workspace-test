@@ -1,0 +1,363 @@
+workbookId: london-germany-trip-planner
+name: London & Germany Trip Planner
+description: A day-by-day October 2026 itinerary with a governed rescheduling workspace and an assistant for logistics checks.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: itinerary-base
+      name: Itinerary Base
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: london_germany_current_trip_itinerary_oct_2026
+        elementId: london_germany_current_trip_itinerary_oct_2026
+      columns:
+        - id: item-key
+          name: Item Key
+          formula: '[Date] & "|" & [Time] & "|" & [Plan]'
+        - id: day-order
+          name: Day Order
+          formula: Switch([Date], "Thu Oct 1", 1, "Fri Oct 2", 2, "Sat Oct 3", 3, "Sun Oct 4", 4, "Mon Oct 5", 5, "Tue Oct 6", 6, "Wed Oct 7", 7, "Thu Oct 8", 8, "Fri Oct 9", 9, "Sat Oct 10", 10, "Sun Oct 11", 11, 99)
+        - id: date
+          name: Date
+          formula: "[Date]"
+        - id: city
+          name: City
+          formula: "[City]"
+        - id: time
+          name: Time
+          formula: "[Time]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: location-details
+          name: Location Details
+          formula: "[Location Details]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: notes
+          name: Notes
+          formula: "[Notes]"
+      sort:
+        - columnId: day-order
+          direction: ascending
+        - columnId: time
+          direction: ascending
+    - id: day-filter
+      name: Day
+      kind: control
+      controlId: selected-day
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: itinerary-base
+          columnId: date
+    - id: city-filter
+      name: City
+      kind: control
+      controlId: selected-city
+      controlType: list
+      filters:
+        - source:
+            kind: table
+            elementId: itinerary-base
+          columnId: city
+    - id: ask-trip-assistant
+      name: Ask Trip Itinerary Assistant
+      kind: button
+      actions:
+        - id: open-trip-assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: trip-assistant-drawer
+      text: Ask Trip Itinerary Assistant
+      appearance: filled
+      icon: sparkles
+    - id: activity-count
+      name: Activities
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: itinerary-base
+      columns:
+        - id: value
+          name: Activities
+          formula: Count()
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: days-planned
+      name: Days Planned
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: itinerary-base
+      columns:
+        - id: value
+          name: Days Planned
+          formula: CountDistinct([Date])
+          format:
+            kind: number
+            decimals: 0
+      value:
+        columnId: value
+    - id: day-load
+      name: Activities by Day
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: itinerary-base
+      columns:
+        - id: date-label
+          name: Date
+          formula: Switch([Date], "Thu Oct 1", "01 · Thu Oct 1", "Fri Oct 2", "02 · Fri Oct 2", "Sat Oct 3", "03 · Sat Oct 3", "Sun Oct 4", "04 · Sun Oct 4", "Mon Oct 5", "05 · Mon Oct 5", "Tue Oct 6", "06 · Tue Oct 6", "Wed Oct 7", "07 · Wed Oct 7", "Thu Oct 8", "08 · Thu Oct 8", "Fri Oct 9", "09 · Fri Oct 9", "Sat Oct 10", "10 · Sat Oct 10", "Sun Oct 11", "11 · Sun Oct 11", [Date])
+        - id: activities
+          name: Activities
+          formula: Count()
+          format:
+            kind: number
+            decimals: 0
+      xAxis:
+        columnId: date-label
+        sort:
+          by: date-label
+          direction: ascending
+      yAxis:
+        columnIds:
+          - activities
+      color:
+        by: single
+        value: "#2563eb"
+      dataLabel:
+        labels: shown
+        labelDisplay: all
+      limit: 15
+    - id: status-mix
+      name: Booking & Flexibility Status
+      kind: donut-chart
+      source:
+        kind: table
+        elementId: itinerary-base
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: activities
+          name: Activities
+          formula: Count()
+          format:
+            kind: number
+            decimals: 0
+      color:
+        by: category
+        column: status
+        scheme: ocean
+      value:
+        columnId: activities
+      category:
+        columnId: status
+      limit: 12
+    - id: daily-itinerary
+      name: Daily Itinerary
+      kind: table
+      source:
+        kind: table
+        elementId: itinerary-base
+      columns:
+        - id: day-order
+          name: Day Order
+          formula: "[Day Order]"
+          hidden: true
+        - id: date
+          name: Date
+          formula: "[Date]"
+        - id: time
+          name: Time
+          formula: "[Time]"
+        - id: city
+          name: City
+          formula: "[City]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: location
+          name: Location Details
+          formula: "[Location Details]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: notes
+          name: Notes
+          formula: "[Notes]"
+      sort:
+        - columnId: day-order
+          direction: ascending
+        - columnId: time
+          direction: ascending
+      limit: 100
+    - id: planner-help
+      name: How to Reschedule Safely
+      kind: text
+      body: |
+        ## Move an activity without breaking the day
+        Choose a **New Date** and **New Time** in the workspace. Add the venue's confirmed **Opening Hours** and a realistic **Travel Buffer**. Then ask the Trip Itinerary Assistant to check surrounding activities, city changes, fixed bookings, timing, and whether the proposed slot fits inside the supplied opening hours.
+
+        The assistant will not treat a move as ready until the required hours and logistics are supported by the itinerary or details you provide.
+    - id: ask-trip-assistant-planner
+      name: Ask Trip Itinerary Assistant
+      kind: button
+      actions:
+        - id: open-trip-assistant-from-planner
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: trip-assistant-drawer
+      text: Ask Trip Itinerary Assistant
+      appearance: filled
+      icon: sparkles
+    - id: reschedule-workspace
+      name: Reschedule Workspace
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: itinerary-base
+        connectionId: default
+      columns:
+        - id: item-key
+          name: Item Key
+          key: item-key
+        - id: original-date
+          name: Original Date
+          formula: "[Date]"
+        - id: original-time
+          name: Original Time
+          formula: "[Time]"
+        - id: city
+          name: City
+          formula: "[City]"
+        - id: plan
+          name: Plan
+          formula: "[Plan]"
+        - id: location-details
+          name: Location Details
+          formula: "[Location Details]"
+        - id: current-status
+          name: Current Status
+          formula: "[Status]"
+        - id: new-date
+          name: New Date
+          type: text
+          values:
+            - Thu Oct 1
+            - Fri Oct 2
+            - Sat Oct 3
+            - Sun Oct 4
+            - Mon Oct 5
+            - Tue Oct 6
+            - Wed Oct 7
+            - Thu Oct 8
+            - Fri Oct 9
+            - Sat Oct 10
+            - Sun Oct 11
+        - id: new-time
+          name: New Time
+          type: text
+        - id: opening-hours
+          name: Confirmed Opening Hours
+          type: text
+        - id: travel-buffer-minutes
+          name: Travel Buffer (minutes)
+          type: number
+          default:
+            kind: constant
+            value: 30
+          min: 0
+        - id: move-status
+          name: Move Status
+          type: text
+          values:
+            - As planned
+            - Considering move
+            - Needs review
+            - Ready to move
+            - Moved
+          default:
+            kind: constant
+            value: As planned
+        - id: logistics-review
+          name: Logistics Review
+          type: text
+          multiline: true
+    - id: trip-assistant
+      name: Trip Itinerary Assistant
+      kind: agent
+      agentId: trip-itinerary-assistant
+      placeholder: Ask me to find the best slot for a missed activity and validate the move.
+      height: 720
+  pages:
+    - id: daily-plan
+      name: Daily Plan
+      elements:
+        - day-filter
+        - city-filter
+        - ask-trip-assistant
+        - activity-count
+        - days-planned
+        - day-load
+        - status-mix
+        - id: daily-itinerary
+          height: 15
+    - id: reschedule-planner
+      name: Reschedule Planner
+      elements:
+        - planner-help
+        - ask-trip-assistant-planner
+        - id: reschedule-workspace
+          height: 18
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - itinerary-base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="daily-plan">
+      <Element elementId="day-filter" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="city-filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="ask-trip-assistant" gridColumn="13 / 17" gridRow="1 / 3"/>
+      <Element elementId="activity-count" gridColumn="1 / 13" gridRow="3 / 7"/>
+      <Element elementId="days-planned" gridColumn="13 / 25" gridRow="3 / 7"/>
+      <Element elementId="day-load" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="status-mix" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="daily-itinerary" gridColumn="1 / 25" gridRow="16 / 31"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="reschedule-planner">
+      <Element elementId="planner-help" gridColumn="1 / 25" gridRow="1 / 3"/>
+      <Element elementId="ask-trip-assistant-planner" gridColumn="1 / 5" gridRow="3 / 5"/>
+      <Element elementId="reschedule-workspace" gridColumn="1 / 25" gridRow="5 / 23"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="itinerary-base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="trip-assistant-drawer">
+      <Element elementId="trip-assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: trip-assistant-drawer
+      kind: drawer
+      title: Trip Itinerary Assistant
+      size: large
+      elements:
+        - trip-assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: ocean

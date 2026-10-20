@@ -1,0 +1,348 @@
+workbookId: account-health-2
+name: Account Health
+description: Account portfolio health overview with billing, feature adoption, invoice payment, and account-level detail.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: account_base
+      name: Account data
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: employee_count
+          name: Employee Count
+          formula: "[Employee Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: invoice_count
+          name: Invoice Count
+          formula: "[Invoice Count]"
+        - id: paid_invoice_count
+          name: Paid Invoice Count
+          formula: "[Paid Invoice Count]"
+        - id: account_count
+          name: Accounts
+          formula: "[Account Count]"
+        - id: billed_metric
+          name: Billed Metric
+          formula: "[Total Billed Across Accounts]"
+        - id: adoption_metric
+          name: Adoption Metric
+          formula: "[Adopted Feature Rate]"
+        - id: paid_metric
+          name: Paid Metric
+          formula: "[Paid Invoice Rate]"
+      visibleAsSource: true
+    - id: f_region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: region
+    - id: f_status
+      kind: control
+      controlId: status_filter
+      controlType: list
+      label: Account Status
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: status
+    - id: f_plan
+      kind: control
+      controlId: plan_filter
+      controlType: list
+      label: Current Plan
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: current_plan
+    - id: f_signup
+      kind: control
+      controlId: signup_filter
+      controlType: date-range
+      label: Signup Date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: account_base
+          columnId: signup_date
+    - id: ask_button
+      kind: button
+      actions:
+        - id: open_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: assistant_drawer
+      text: Ask Account Health Assistant
+      appearance: filled
+      icon: sparkles
+    - id: kpi_accounts
+      name: Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: value
+          name: Accounts
+          formula: "[Account Count]"
+      value:
+        columnId: value
+    - id: kpi_billed
+      name: Total Billed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: value
+          name: Total Billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: value
+    - id: kpi_adoption
+      name: Adopted Feature Rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: value
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: kpi_paid
+      name: Paid Invoice Rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: value
+          name: Paid Invoice Rate
+          formula: "[Paid Invoice Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: health_by_status
+      name: Accounts by Status
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: status
+      yAxis:
+        columnIds:
+          - accounts
+    - id: billed_by_plan
+      name: Billed by Current Plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billed
+          name: Total Billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      xAxis:
+        columnId: plan
+        sort:
+          by: billed
+          direction: descending
+      yAxis:
+        columnIds:
+          - billed
+      limit: 10
+    - id: adoption_by_industry
+      name: Adopted Feature Rate by Industry
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: rate
+          name: Adopted Feature Rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: industry
+        sort:
+          by: rate
+          direction: descending
+      yAxis:
+        columnIds:
+          - rate
+      limit: 10
+    - id: account_detail
+      name: Account Detail
+      kind: table
+      source:
+        kind: table
+        elementId: account_base
+      columns:
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_feature_count
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Records
+          formula: "[Feature Record Count]"
+        - id: paid_invoice_count
+          name: Paid Invoices
+          formula: "[Paid Invoice Count]"
+        - id: invoice_count
+          name: Invoices
+          formula: "[Invoice Count]"
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+    - id: account_assistant
+      kind: agent
+      agentId: account-health-assistant
+      placeholder: Ask about account health, adoption, billing, or payment patterns.
+      height: 600
+  pages:
+    - id: overview
+      name: Account Health
+      elements:
+        - f_region
+        - f_status
+        - f_plan
+        - f_signup
+        - ask_button
+        - kpi_accounts
+        - kpi_billed
+        - kpi_adoption
+        - kpi_paid
+        - health_by_status
+        - billed_by_plan
+        - adoption_by_industry
+        - account_detail
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="f_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_status" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="f_plan" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="f_signup" gridColumn="19 / 25" gridRow="1 / 3"/>
+      <Element elementId="ask_button" gridColumn="1 / 5" gridRow="3 / 5"/>
+      <Element elementId="kpi_accounts" gridColumn="1 / 7" gridRow="5 / 9"/>
+      <Element elementId="kpi_billed" gridColumn="7 / 13" gridRow="5 / 9"/>
+      <Element elementId="kpi_adoption" gridColumn="13 / 19" gridRow="5 / 9"/>
+      <Element elementId="kpi_paid" gridColumn="19 / 25" gridRow="5 / 9"/>
+      <Element elementId="health_by_status" gridColumn="1 / 13" gridRow="9 / 18"/>
+      <Element elementId="billed_by_plan" gridColumn="13 / 25" gridRow="9 / 18"/>
+      <Element elementId="adoption_by_industry" gridColumn="1 / 25" gridRow="18 / 27"/>
+      <Element elementId="account_detail" gridColumn="1 / 25" gridRow="27 / 39"/>
+      <Element elementId="account_base" gridColumn="1 / 25" gridRow="39 / 51"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="assistant_drawer">
+      <Element elementId="account_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: assistant_drawer
+      kind: drawer
+      title: Account Health Assistant
+      size: large
+      elements:
+        - account_assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

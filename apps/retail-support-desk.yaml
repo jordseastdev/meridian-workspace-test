@@ -1,0 +1,313 @@
+workbookId: retail-support-desk
+name: Retail Support Desk
+description: Support ticket queue with ticket assignment, internal notes, and closure.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: tickets
+      name: Support tickets
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: support_tickets
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Ticket ID]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: order_id
+          name: Order ID
+          formula: "[Order ID]"
+        - id: opened_at
+          name: Opened At
+          formula: "[Opened At]"
+        - id: channel
+          name: Contact Channel
+          formula: "[Contact Channel]"
+        - id: category
+          name: Ticket Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: agent
+          name: Agent
+          formula: "[Agent]"
+        - id: status
+          name: Ticket Status
+          formula: "[Ticket Status]"
+        - id: first_response
+          name: First Response Minutes
+          formula: "[First Response Minutes]"
+        - id: resolution
+          name: Resolution Hours
+          formula: "[Resolution Hours]"
+        - id: csat
+          name: CSAT Score
+          formula: "[CSAT Score]"
+    - id: ticket_work
+      name: Ticket work
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: tickets
+        connectionId: default
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          key: ticket_id
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: category
+          name: Ticket Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: agent
+          name: Agent
+          formula: "[Agent]"
+        - id: status
+          name: Ticket Status
+          formula: "[Ticket Status]"
+        - id: opened_at
+          name: Opened At
+          formula: "[Opened At]"
+        - id: assigned_to
+          name: Assigned To
+          type: text
+        - id: internal_note
+          name: Internal Note
+          type: text
+          multiline: true
+        - id: closed
+          name: Closed
+          type: checkbox
+    - id: selected_ticket
+      kind: control
+      controlId: selected_ticket
+      controlType: text
+      label: Selected ticket
+    - id: f_search
+      kind: control
+      controlId: search
+      controlType: text
+      label: Search tickets
+      placeholder: Search ticket ID, category, or assignee
+      filters:
+        - source:
+            kind: table
+            elementId: ticket_queue
+          columnId: searchable
+    - id: kpi_open
+      name: Open tickets
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: ticket_queue
+      columns:
+        - id: count
+          name: Open Tickets
+          formula: CountDistinct([Ticket ID])
+      value:
+        columnId: count
+    - id: kpi_urgent
+      name: Urgent tickets
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: ticket_queue
+      columns:
+        - id: count
+          name: Urgent Tickets
+          formula: CountIf([Priority] = "Urgent")
+      value:
+        columnId: count
+    - id: ticket_queue
+      name: Open ticket queue
+      kind: table
+      actions:
+        - id: open_ticket
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_ticket
+              value:
+                type: selection
+                columnId: ticket_id
+            - effect: open-overlay
+              overlayId: ticket_panel
+      source:
+        kind: table
+        elementId: ticket_work
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Ticket ID]"
+        - id: category
+          name: Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: status
+          name: Status
+          formula: "[Ticket Status]"
+        - id: assignee
+          name: Assignee
+          formula: Coalesce([Assigned To], [Agent])
+        - id: searchable
+          name: Searchable
+          formula: '[Ticket ID] & " " & [Ticket Category] & " " & Coalesce([Assigned To], [Agent])'
+      filters:
+        - id: active
+          kind: formula
+          formula: Coalesce([Closed], false) = false and [Ticket Status] != "Solved" and [Ticket Status] != "Closed"
+      display: cards
+      card:
+        title: ticket_id
+        subtitle: category
+        status: status
+        fields:
+          - priority
+          - assignee
+    - id: ticket_detail
+      name: Ticket details
+      kind: table
+      source:
+        kind: table
+        elementId: ticket_work
+      columns:
+        - id: ticket_id
+          name: Ticket ID
+          formula: "[Ticket ID]"
+        - id: category
+          name: Category
+          formula: "[Ticket Category]"
+        - id: priority
+          name: Priority
+          formula: "[Priority]"
+        - id: status
+          name: Status
+          formula: "[Ticket Status]"
+        - id: opened_at
+          name: Opened
+          formula: "[Opened At]"
+        - id: channel
+          name: Channel
+          formula: "[Contact Channel]"
+        - id: customer_id
+          name: Customer ID
+          formula: "[Customer ID]"
+        - id: assignee
+          name: Assignee
+          formula: Coalesce([Assigned To], [Agent])
+        - id: note
+          name: Internal Note
+          formula: "[Internal Note]"
+      filters:
+        - id: picked
+          kind: formula
+          formula: "[Ticket ID] = [selected_ticket]"
+      display: record
+      card:
+        title: ticket_id
+        subtitle: category
+        status: status
+        fields:
+          - priority
+          - opened_at
+          - channel
+          - customer_id
+          - assignee
+          - note
+    - id: ticket_edit
+      kind: form
+      title: Update ticket
+      tableElementId: ticket_work
+      fields:
+        - assigned_to
+        - internal_note
+      submitText: Save
+      editRow:
+        control: selected_ticket
+        columnId: ticket_id
+    - id: close_ticket
+      kind: button
+      actions:
+        - id: close_selected
+          trigger: on-click
+          confirm: Close this ticket?
+          effects:
+            - effect: update-rows
+              tableElementId: ticket_work
+              whichRows:
+                type: column-match
+                columnId: ticket_id
+                value:
+                  type: control
+                  control: selected_ticket
+              values:
+                closed:
+                  type: constant
+                  value: true
+            - effect: notify
+              message: Ticket closed
+              level: success
+            - effect: close-overlay
+            - effect: refresh
+      text: Close ticket
+      appearance: danger
+  pages:
+    - id: desk
+      name: Support Desk
+      elements:
+        - f_search
+        - kpi_open
+        - kpi_urgent
+        - ticket_queue
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - tickets
+        - ticket_work
+        - selected_ticket
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="desk">
+      <Element elementId="f_search" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="kpi_open" gridColumn="1 / 13" gridRow="3 / 7"/>
+      <Element elementId="kpi_urgent" gridColumn="13 / 25" gridRow="3 / 7"/>
+      <Element elementId="ticket_queue" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="tickets" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="ticket_work" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="selected_ticket" gridColumn="1 / 7" gridRow="25 / 27"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="ticket_panel">
+      <Element elementId="ticket_detail" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="ticket_edit" gridColumn="1 / 25" gridRow="13 / 21"/>
+      <Element elementId="close_ticket" gridColumn="1 / 5" gridRow="21 / 23"/>
+    </Overlay>
+  overlays:
+    - id: ticket_panel
+      kind: drawer
+      title: Ticket details
+      size: large
+      elements:
+        - ticket_detail
+        - ticket_edit
+        - close_ticket
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

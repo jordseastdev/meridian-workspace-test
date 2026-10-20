@@ -1,0 +1,7 @@
+genaiAppId: london-exploration-app
+name: london exploration app
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: london-germany-trip-planner
+  prompt: Rewrite this GenAI App as a polished trip-planning screen for exploring the London and Germany itinerary. Show each itinerary activity with its date, time, city, plan, location details, status, and notes; allow filtering by day and city. Include the existing reschedule workspace fields (new date/time, confirmed opening hours, travel buffer, move status, and logistics review) so I can plan and track proposed changes. Keep the app focused, easy to use, and grounded in the workbook data.

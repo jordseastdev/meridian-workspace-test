@@ -1,0 +1,28 @@
+agentId: ops-watchdog
+name: Ops watchdog
+contents:
+  schemaVersion: 1
+  kind: agent
+  instructions: You watch order operations and flag anything unusual. Be brief.
+  model: gpt-5.6-luna
+  workbooks:
+    - sales-command-center
+  tools:
+    - read-data
+  approval: confirm-writes
+  maxSteps: 12
+  starters:
+    - Which regions have the largest unusual revenue changes today versus their recent trend?
+    - Which order operations issues need immediate attention today, and why?
+    - Compare regional revenue today and identify the three biggest positive or negative outliers.
+  triggers:
+    - schedule: 0 8 * * *
+      timezone: America/New_York
+    - webhook:
+        secret: ${AGENT_HOOK_SECRET}
+  outputs:
+    - kind: saved
+      destinationId: general-test
+  runPrompt: Summarize revenue by region in 3 bullets.
+  runAs: priya@meridian.dev
+  enabled: true

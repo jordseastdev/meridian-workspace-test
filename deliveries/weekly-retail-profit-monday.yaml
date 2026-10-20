@@ -1,0 +1,16 @@
+deliveryId: weekly-retail-profit-monday
+name: Weekly Retail Profit Update
+contents:
+  schemaVersion: 1
+  kind: delivery
+  schedule: 0 9 * * 1
+  timezone: Europe/Berlin
+  target:
+    workbookId: retail-profit-update
+    elementId: profit_kpi
+  format: csv
+  destination:
+    kind: saved
+    destinationId: general-test
+  enabled: true
+  maxRows: 5000

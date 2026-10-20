@@ -1,0 +1,333 @@
+workbookId: deal-desk
+name: Deal Desk
+description: Discount approval app. Reps' deal requests land in a queue; approvers review each one in a modal and write decisions back to the warehouse.
+folderId: sales
+tags:
+  - app
+  - writeback
+  - sales-ops
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: header
+      kind: text
+      body: |
+        # Deal Desk
+        {{CountIf([Deals/Status] = "Pending") | number}} deals waiting on a decision. Select a row to review it.
+    - id: ctl_owner
+      kind: control
+      controlId: owner
+      controlType: list
+      label: Owner
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: deals
+          columnId: owner
+    - id: ctl_status
+      kind: control
+      controlId: status
+      controlType: segmented
+      label: Status
+      filters:
+        - source:
+            kind: table
+            elementId: deals
+          columnId: status
+    - id: kpi_pipeline
+      name: Pipeline under review
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: amt
+          name: List amount
+          formula: Sum([List Amount])
+          format:
+            kind: currency
+            decimals: 0
+      value:
+        columnId: amt
+    - id: kpi_discount
+      name: Avg requested discount
+      kind: gauge-chart
+      source:
+        kind: table
+        elementId: deals
+      columns:
+        - id: d
+          name: Discount
+          formula: Avg([Submitted Discount])
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: d
+      target: 0.2
+      min: 0
+      max: 0.4
+    - id: deals
+      name: Deals
+      description: Open deal requests from the CRM mirror.
+      kind: table
+      actions:
+        - id: open_review
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_deal
+              value:
+                type: selection
+                columnId: deal_id
+            - effect: set-control
+              control: decision_discount
+              value:
+                type: selection
+                columnId: submitted_discount
+            - effect: open-overlay
+              overlayId: review
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[DEALS/Deal Id]"
+        - id: account
+          name: Account
+          formula: "[DEALS/Account]"
+        - id: owner
+          name: Owner
+          formula: "[DEALS/Owner]"
+        - id: region
+          name: Region
+          formula: "[DEALS/Region]"
+        - id: stage
+          name: Stage
+          formula: "[DEALS/Stage]"
+        - id: status
+          name: Status
+          formula: "[DEALS/Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[DEALS/List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: submitted_discount
+          name: Submitted Discount
+          formula: "[DEALS/Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: net_amount
+          name: Net Amount
+          formula: "[List Amount] * (1 - [Submitted Discount])"
+          format:
+            kind: currency
+            decimals: 0
+        - id: age_days
+          name: Age (days)
+          formula: "[DEALS/Age Days]"
+      sort:
+        - columnId: age_days
+          direction: descending
+      conditionalFormats:
+        - type: single
+          columnIds:
+            - submitted_discount
+          condition: ">"
+          value: 0.25
+          style:
+            color: "#FF7A7A"
+            bold: true
+    - id: decisions
+      name: Decisions
+      description: Approver decisions, written back to the warehouse with a full edit log.
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Deal ID
+          type: text
+          required: true
+        - id: decision
+          name: Decision
+          type: text
+          values:
+            - Approve
+            - Reject
+            - Needs info
+          required: true
+        - id: approved_discount
+          name: Approved Discount
+          type: number
+          min: 0
+          max: 0.5
+          format:
+            kind: percent
+            decimals: 0
+        - id: notes
+          name: Notes
+          type: text
+        - id: decided_by
+          name: Decided By
+          type: text
+          readOnly: true
+      shareAsTable: true
+    - id: assistant
+      name: Ask the deal desk assistant
+      kind: agent
+      agentId: deal-desk-assistant
+      placeholder: Which requests need a decision?
+      height: 460
+    - id: selected_deal_ctl
+      kind: control
+      controlId: selected_deal
+      controlType: text
+      label: Deal
+    - id: decision_ctl
+      kind: control
+      controlId: decision
+      controlType: segmented
+      label: Decision
+      value: Approve
+      options:
+        - Approve
+        - Reject
+        - Needs info
+    - id: discount_ctl
+      kind: control
+      controlId: decision_discount
+      controlType: slider
+      label: Approved discount
+      low: 0
+      high: 0.5
+      step: 0.01
+    - id: notes_ctl
+      kind: control
+      controlId: notes
+      controlType: text-area
+      label: Notes for the rep
+    - id: submit
+      kind: button
+      actions:
+        - id: record
+          trigger: on-click
+          condition: IsNotNull([selected_deal])
+          effects:
+            - effect: insert-rows
+              tableElementId: decisions
+              values:
+                deal_id:
+                  type: control
+                  control: selected_deal
+                decision:
+                  type: control
+                  control: decision
+                approved_discount:
+                  type: control
+                  control: decision_discount
+                notes:
+                  type: control
+                  control: notes
+                decided_by:
+                  type: user
+                  field: email
+            - effect: call-procedure
+              procedureId: set_deal_status
+              args:
+                deal_id:
+                  type: control
+                  control: selected_deal
+                status:
+                  type: formula
+                  formula: Switch([decision], "Approve", "Approved", "Reject", "Rejected", "In Review")
+            - effect: notify
+              message: Decision recorded for {{selected_deal}}
+              level: success
+            - effect: clear-control
+              controls:
+                - notes
+            - effect: close-overlay
+            - effect: refresh
+      text: Submit decision
+      appearance: filled
+    - id: decision_mix
+      name: Decision volume
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: decisions
+      columns:
+        - id: decision
+          name: Decision
+          formula: "[Decision]"
+        - id: n
+          name: Decision count
+          formula: Count()
+      xAxis:
+        columnId: decision
+        sort:
+          by: n
+          direction: descending
+      yAxis:
+        columnIds:
+          - n
+      color:
+        by: single
+        value: "#6F86FF"
+      orientation: horizontal
+  pages:
+    - id: queue
+      name: Approval queue
+    - id: audit
+      name: Decisions
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="queue">
+      <Element elementId="header" gridColumn="1 / 13" gridRow="1 / 3"/>
+      <Element elementId="ctl_owner" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ctl_status" gridColumn="19 / 25" gridRow="1 / 3"/>
+      <Element elementId="kpi_pipeline" gridColumn="1 / 13" gridRow="3 / 6"/>
+      <Element elementId="kpi_discount" gridColumn="13 / 25" gridRow="3 / 6"/>
+      <Element elementId="deals" gridColumn="1 / 25" gridRow="6 / 20"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="audit">
+      <Element elementId="decisions" gridColumn="1 / 17" gridRow="1 / 16"/>
+      <Element elementId="decision_mix" gridColumn="17 / 25" gridRow="1 / 16"/>
+      <Element elementId="assistant" gridColumn="1 / 25" gridRow="16 / 28"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(12, 1fr)" gridTemplateRows="auto" id="review">
+      <Element elementId="selected_deal_ctl" gridColumn="1 / 13" gridRow="1 / 2"/>
+      <Element elementId="decision_ctl" gridColumn="1 / 13" gridRow="2 / 3"/>
+      <Element elementId="discount_ctl" gridColumn="1 / 13" gridRow="3 / 4"/>
+      <Element elementId="notes_ctl" gridColumn="1 / 13" gridRow="4 / 6"/>
+      <Element elementId="submit" gridColumn="8 / 13" gridRow="6 / 7"/>
+    </Page>
+  overlays:
+    - id: review
+      kind: modal
+      title: Review deal {{[selected_deal]}}
+      size: medium
+  settings:
+    theme:
+      preset: midnight
+      accent: "#6F86FF"
+  procedures:
+    - id: set_deal_status
+      name: Update deal status in the warehouse
+      connectionId: default
+      statement: UPDATE retail.deals SET status = :status WHERE deal_id = :deal_id
+      params:
+        - name: status
+          type: text
+        - name: deal_id
+          type: text

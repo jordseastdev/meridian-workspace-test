@@ -1,0 +1,252 @@
+workbookId: saas-account-explorer-3
+name: SaaS Account Explorer
+description: Explore SaaS account health, adoption, billing, and account attributes.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts_base
+      name: Account data
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: acquisition_source
+          name: Acquisition Source
+          formula: "[Acquisition Source]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: employee_count
+          name: Employee Count
+          formula: "[Employee Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_features
+          name: Adopted Features
+          formula: "[Adopted Feature Count]"
+        - id: feature_records
+          name: Feature Records
+          formula: "[Feature Record Count]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+    - id: signup_dates
+      kind: control
+      controlId: signup_dates
+      controlType: date-range
+      label: Signup date
+      value:
+        start: 2022-01-02
+        end: 2025-09-28
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: signup_date
+    - id: region_filter
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: region
+    - id: status_filter
+      kind: control
+      controlId: status_filter
+      controlType: list
+      label: Account status
+      selectionMode: multiple
+      filters:
+        - source:
+            kind: table
+            elementId: accounts_base
+          columnId: status
+    - id: kpi_accounts
+      name: Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Accounts
+          formula: "[Account Count]"
+      value:
+        columnId: value
+    - id: kpi_billed
+      name: Total billed
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Total billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      value:
+        columnId: value
+    - id: kpi_adoption
+      name: Adopted feature rate
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: value
+          name: Adopted feature rate
+          formula: "[Adopted Feature Rate]"
+          format:
+            kind: percent
+            decimals: 1
+      value:
+        columnId: value
+    - id: by_region
+      name: Accounts by region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: accounts
+          name: Accounts
+          formula: "[Account Count]"
+      xAxis:
+        columnId: region
+        sort:
+          by: accounts
+          direction: descending
+      yAxis:
+        columnIds:
+          - accounts
+    - id: by_plan
+      name: Billed by current plan
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: billed
+          name: Total billed
+          formula: "[Total Billed Across Accounts]"
+          format:
+            kind: currency
+            decimals: 2
+      xAxis:
+        columnId: plan
+        sort:
+          by: billed
+          direction: descending
+      yAxis:
+        columnIds:
+          - billed
+    - id: account_detail
+      name: Account details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts_base
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: region
+          name: Region
+        - id: industry
+          name: Industry
+        - id: status
+          name: Status
+        - id: current_plan
+          name: Current Plan
+        - id: employee_count
+          name: Employee Count
+        - id: total_billed
+          name: Total Billed
+          format:
+            kind: currency
+            decimals: 2
+        - id: adopted_features
+          name: Adopted Features
+        - id: signup_date
+          name: Signup Date
+        - id: churned_date
+          name: Churned Date
+      sort:
+        - columnId: total_billed
+          direction: descending
+      limit: 100
+  pages:
+    - id: overview
+      name: Overview
+      elements:
+        - signup_dates
+        - region_filter
+        - status_filter
+        - kpi_accounts
+        - kpi_billed
+        - kpi_adoption
+        - by_region
+        - by_plan
+        - account_detail
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - accounts_base
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="overview">
+      <Element elementId="signup_dates" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="region_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="status_filter" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="kpi_accounts" gridColumn="1 / 9" gridRow="3 / 7"/>
+      <Element elementId="kpi_billed" gridColumn="9 / 17" gridRow="3 / 7"/>
+      <Element elementId="kpi_adoption" gridColumn="17 / 25" gridRow="3 / 7"/>
+      <Element elementId="by_region" gridColumn="1 / 13" gridRow="7 / 16"/>
+      <Element elementId="by_plan" gridColumn="13 / 25" gridRow="7 / 16"/>
+      <Element elementId="account_detail" gridColumn="1 / 25" gridRow="16 / 28"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="accounts_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

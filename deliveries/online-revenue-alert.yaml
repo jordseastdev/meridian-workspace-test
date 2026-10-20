@@ -1,0 +1,23 @@
+deliveryId: online-revenue-alert
+name: Online revenue below $50k
+folderId: sales
+contents:
+  schemaVersion: 1
+  kind: delivery
+  every: 1h
+  timezone: UTC
+  target:
+    workbookId: sales-command-center
+    elementId: leaderboard
+  format: csv
+  destination:
+    kind: webhook
+    url: ${SALES_ALERTS_WEBHOOK_URL}
+  controls:
+    channel: Online
+  runAs: avery@meridian.dev
+  alert:
+    when: Sum([Revenue]) < 50000
+    frequency: once
+  enabled: true
+  maxRows: 5000

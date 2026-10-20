@@ -1,0 +1,437 @@
+workbookId: discount-approvals-11
+name: Discount Approvals
+description: Phone-friendly review queue for open discount requests, with insights and an assistant.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: deals_base
+      name: Open discount requests
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: retail
+        elementId: deals
+      columns:
+        - id: deal_id
+          name: Deal ID
+          formula: "[Deals/Deal ID]"
+        - id: account
+          name: Account
+          formula: "[Deals/Account]"
+        - id: owner
+          name: Owner
+          formula: "[Deals/Owner]"
+        - id: region
+          name: Region
+          formula: "[Deals/Region]"
+        - id: stage
+          name: Stage
+          formula: "[Deals/Stage]"
+        - id: status
+          name: Status
+          formula: "[Deals/Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[Deals/List Amount]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: discount
+          name: Submitted Discount
+          formula: "[Deals/Submitted Discount]"
+          format:
+            kind: percent
+            decimals: 0
+        - id: age_days
+          name: Age Days
+          formula: "[Deals/Age Days]"
+    - id: review
+      name: Discount decision records
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: deals_base
+        connectionId: default
+      columns:
+        - id: deal_id
+          name: Deal ID
+          key: deal_id
+        - id: account
+          name: Account
+          formula: "[Account]"
+        - id: owner
+          name: Owner
+          formula: "[Owner]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: stage
+          name: Stage
+          formula: "[Stage]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: list_amount
+          name: List Amount
+          formula: "[List Amount]"
+        - id: discount
+          name: Submitted Discount
+          formula: "[Submitted Discount]"
+        - id: age_days
+          name: Age Days
+          formula: "[Age Days]"
+        - id: decision
+          name: Decision
+          type: text
+          values:
+            - Approved
+            - Rejected
+        - id: rejection_reason
+          name: Rejection Reason
+          type: text
+          multiline: true
+        - id: reviewed_by
+          name: Reviewed By
+          type: text
+          readOnly: true
+        - id: reviewed_at
+          name: Reviewed At
+          type: datetime
+          readOnly: true
+    - id: f_region
+      kind: control
+      controlId: region_filter
+      controlType: list
+      label: Region
+      filters:
+        - source:
+            kind: table
+            elementId: review
+          columnId: region
+    - id: f_stage
+      kind: control
+      controlId: stage_filter
+      controlType: list
+      label: Stage
+      filters:
+        - source:
+            kind: table
+            elementId: review
+          columnId: stage
+    - id: f_age
+      kind: control
+      controlId: min_age
+      controlType: number
+      label: Minimum age (days)
+      value: 0
+      filters:
+        - source:
+            kind: table
+            elementId: review
+          columnId: age_days
+    - id: pending_kpi
+      name: Pending Requests
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: pending
+          name: Pending Requests
+          formula: CountIf(IsNull([Decision]))
+      value:
+        columnId: pending
+    - id: deal_queue
+      name: Pending Discount Requests
+      kind: table
+      actions:
+        - id: open_details
+          trigger: on-select
+          effects:
+            - effect: set-control
+              control: selected_deal
+              value:
+                type: selection
+                columnId: deal_id
+            - effect: open-overlay
+              overlayId: deal_detail
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: deal_id
+          name: Deal ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: list_amount
+          name: List Amount
+        - id: discount
+          name: Submitted Discount
+        - id: age_days
+          name: Age Days
+        - id: decision
+          name: Decision
+      filters:
+        - id: pending_only
+          kind: formula
+          formula: IsNull([Decision]) and ([Status] = "Pending" or [Status] = "In Review") and [Age Days] >= [min_age]
+      rowActions:
+        - id: approve
+          text: Approve
+          appearance: filled
+          icon: check
+          showWhen: IsNull([decision])
+          confirm: Approve {{deal_id}}?
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: column-match
+                columnId: deal_id
+                value:
+                  type: selection
+                  columnId: deal_id
+              values:
+                decision:
+                  type: constant
+                  value: Approved
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+        - id: reject
+          text: Reject
+          appearance: outline
+          icon: x
+          showWhen: IsNull([decision])
+          ask:
+            label: Rejection reason
+            placeholder: Explain why this request is rejected
+            required: true
+          effects:
+            - effect: update-rows
+              tableElementId: review
+              whichRows:
+                type: column-match
+                columnId: deal_id
+                value:
+                  type: selection
+                  columnId: deal_id
+              values:
+                decision:
+                  type: constant
+                  value: Rejected
+                rejection_reason:
+                  type: answer
+                reviewed_by:
+                  type: user
+                  field: email
+                reviewed_at:
+                  type: now
+      display: cards
+      card:
+        title: account
+        subtitle: deal_id
+        status: stage
+        fields:
+          - owner
+          - region
+          - list_amount
+          - discount
+          - age_days
+    - id: selected_deal
+      kind: control
+      controlId: selected_deal
+      controlType: text
+    - id: deal_detail_table
+      name: Selected Request Details
+      kind: table
+      source:
+        kind: table
+        elementId: review
+      columns:
+        - id: deal_id
+          name: Deal ID
+        - id: account
+          name: Account
+        - id: owner
+          name: Owner
+        - id: region
+          name: Region
+        - id: stage
+          name: Stage
+        - id: status
+          name: Status
+        - id: list_amount
+          name: List Amount
+        - id: discount
+          name: Submitted Discount
+        - id: age_days
+          name: Age Days
+        - id: decision
+          name: Decision
+        - id: rejection_reason
+          name: Rejection Reason
+      filters:
+        - id: selected_filter
+          kind: formula
+          formula: "[Deal ID] = [selected_deal]"
+    - id: requests_by_stage
+      name: Requests by Stage
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: stage
+          name: Stage
+        - id: requests
+          name: Requests
+          formula: CountDistinct([Deal ID])
+      xAxis:
+        columnId: stage
+        sort:
+          by: requests
+          direction: descending
+      yAxis:
+        columnIds:
+          - requests
+    - id: discount_by_region
+      name: Average Discount by Region
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: region
+          name: Region
+        - id: avg_discount
+          name: Average Discount
+          formula: Avg([Submitted Discount])
+          format:
+            kind: percent
+            decimals: 1
+      xAxis:
+        columnId: region
+        sort:
+          by: avg_discount
+          direction: descending
+      yAxis:
+        columnIds:
+          - avg_discount
+    - id: age_trend
+      name: Average Request Age by Stage
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: deals_base
+      columns:
+        - id: stage
+          name: Stage
+        - id: avg_age
+          name: Average Age (days)
+          formula: Avg([Age Days])
+      xAxis:
+        columnId: stage
+        sort:
+          by: avg_age
+          direction: descending
+      yAxis:
+        columnIds:
+          - avg_age
+    - id: ask_button
+      kind: button
+      actions:
+        - id: ask_assistant
+          trigger: on-click
+          effects:
+            - effect: open-overlay
+              overlayId: assistant_drawer
+      text: Ask Deal Desk Assistant
+      appearance: filled
+      icon: sparkles
+    - id: deal_assistant
+      kind: agent
+      agentId: discount-approvals-assistant
+      placeholder: Ask about pending discount requests or approval patterns
+      height: 600
+  pages:
+    - id: queue
+      name: Approval Queue
+      elements:
+        - f_region
+        - f_stage
+        - f_age
+        - ask_button
+        - pending_kpi
+        - deal_queue
+    - id: charts
+      name: Insights
+      elements:
+        - f_region
+        - f_stage
+        - requests_by_stage
+        - discount_by_region
+        - age_trend
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - deals_base
+        - review
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="queue">
+      <Element elementId="f_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_stage" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="f_age" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="ask_button" gridColumn="19 / 23" gridRow="1 / 3"/>
+      <Element elementId="pending_kpi" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="deal_queue" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="charts">
+      <Element elementId="f_region" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="f_stage" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="requests_by_stage" gridColumn="1 / 13" gridRow="3 / 12"/>
+      <Element elementId="discount_by_region" gridColumn="13 / 25" gridRow="3 / 12"/>
+      <Element elementId="age_trend" gridColumn="1 / 25" gridRow="12 / 21"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="deals_base" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="review" gridColumn="1 / 25" gridRow="13 / 25"/>
+    </Page>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="deal_detail">
+      <Element elementId="selected_deal" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="deal_detail_table" gridColumn="1 / 25" gridRow="3 / 15"/>
+    </Overlay>
+    <Overlay type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="assistant_drawer">
+      <Element elementId="deal_assistant" gridColumn="1 / 25" gridRow="1 / 19"/>
+    </Overlay>
+  overlays:
+    - id: deal_detail
+      kind: drawer
+      title: Discount Request Details
+      size: large
+      elements:
+        - selected_deal
+        - deal_detail_table
+    - id: assistant_drawer
+      kind: drawer
+      title: Deal Desk Assistant
+      size: large
+      elements:
+        - deal_assistant
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian

@@ -1,0 +1,383 @@
+workbookId: saas-churn-dashboard-6
+name: SaaS Account Churn Dashboard
+description: Explore churned, at-risk and healthy SaaS accounts using account-level lifecycle and engagement signals.
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: SaaS Accounts
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-account-obt
+        elementId: account_obt
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: domain
+          name: Domain
+          formula: "[Domain]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: signup_date
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: status
+          name: Status
+          formula: "[Status]"
+        - id: current_plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: churned_date
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: CSM
+          formula: "[CSM]"
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+          formula: "[Last Feature Use Date]"
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+          formula: "[Adopted Feature Count]"
+        - id: feature_record_count
+          name: Feature Record Count
+          formula: "[Feature Record Count]"
+        - id: unpaid_invoice_count
+          name: Unpaid Invoice Count
+          formula: "[Unpaid Invoice Count]"
+        - id: total_billed
+          name: Total Billed
+          formula: "[Total Billed]"
+          format:
+            kind: currency
+            decimals: 2
+    - id: churned_status
+      kind: control
+      controlId: churned_status_filter
+      controlType: list
+      label: Account status
+      value: Churned
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: status
+    - id: churned_date
+      kind: control
+      controlId: churned_date_filter
+      controlType: date-range
+      label: Churn date
+      value:
+        start: 2022-07-01
+        end: 2025-09-01
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: churned_date
+    - id: churned_kpi
+      name: Churned Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: Accounts
+          formula: Count()
+      filters:
+        - id: churned_only
+          kind: formula
+          formula: '[Status] = "Churned"'
+      value:
+        columnId: count
+    - id: churned_reason
+      name: Churn Reasons
+      kind: bar-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: count
+          name: Accounts
+          formula: Count()
+      filters:
+        - id: churned_only
+          kind: formula
+          formula: '[Status] = "Churned"'
+      xAxis:
+        columnId: reason
+        sort:
+          by: count
+          direction: descending
+      yAxis:
+        columnIds:
+          - count
+      limit: 10
+    - id: churned_accounts
+      name: Churned Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: industry
+          name: Industry
+        - id: region
+          name: Region
+        - id: current_plan
+          name: Current Plan
+        - id: churned_date
+          name: Churned Date
+        - id: churn_reason
+          name: Churn Reason
+        - id: account_owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: total_billed
+          name: Total Billed
+      filters:
+        - id: churned_only
+          kind: formula
+          formula: '[Status] = "Churned"'
+      sort:
+        - columnId: churned_date
+          direction: descending
+    - id: risk_status
+      kind: control
+      controlId: risk_status_filter
+      controlType: list
+      label: Account status
+      value: Active
+      options:
+        - Active
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: status
+    - id: risk_kpi
+      name: At-Risk Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: Accounts
+          formula: Count()
+      filters:
+        - id: low_adoption
+          kind: formula
+          formula: SafeDivide([Adopted Feature Count], [Feature Record Count]) < 0.25
+      value:
+        columnId: count
+    - id: risk_accounts
+      name: At-Risk Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: current_plan
+          name: Current Plan
+        - id: account_owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: last_feature_use_date
+          name: Last Feature Use Date
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+        - id: feature_record_count
+          name: Feature Record Count
+        - id: unpaid_invoice_count
+          name: Unpaid Invoice Count
+        - id: total_billed
+          name: Total Billed
+      filters:
+        - id: risk_condition
+          kind: formula
+          formula: SafeDivide([Adopted Feature Count], [Feature Record Count]) < 0.25
+      sort:
+        - columnId: last_feature_use_date
+          direction: ascending
+    - id: healthy_status
+      kind: control
+      controlId: healthy_status_filter
+      controlType: list
+      label: Account status
+      value: Active
+      options:
+        - Active
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: status
+    - id: healthy_kpi
+      name: Healthy Accounts
+      kind: kpi-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: count
+          name: Accounts
+          formula: Count()
+      filters:
+        - id: healthy_condition
+          kind: formula
+          formula: SafeDivide([Adopted Feature Count], [Feature Record Count]) >= 0.25
+      value:
+        columnId: count
+    - id: healthy_accounts
+      name: Healthy Account Details
+      kind: table
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: account_name
+          name: Account Name
+        - id: domain
+          name: Domain
+        - id: industry
+          name: Industry
+        - id: region
+          name: Region
+        - id: current_plan
+          name: Current Plan
+        - id: account_owner
+          name: Account Owner
+        - id: csm
+          name: CSM
+        - id: adopted_feature_count
+          name: Adopted Feature Count
+        - id: feature_record_count
+          name: Feature Record Count
+        - id: total_billed
+          name: Total Billed
+      filters:
+        - id: healthy_condition
+          kind: formula
+          formula: SafeDivide([Adopted Feature Count], [Feature Record Count]) >= 0.25
+      sort:
+        - columnId: total_billed
+          direction: descending
+    - id: plan_filter
+      kind: control
+      controlId: plan_filter
+      controlType: list
+      label: Current plan
+      filters:
+        - source:
+            kind: table
+            elementId: accounts
+          columnId: current_plan
+    - id: signup_trend
+      name: Signups by Month
+      kind: line-chart
+      source:
+        kind: table
+        elementId: accounts
+      columns:
+        - id: signup_month
+          name: Signup Month
+          formula: DateTrunc("month", [Signup Date])
+        - id: signups
+          name: Signups
+          formula: Count()
+      xAxis:
+        columnId: signup_month
+      yAxis:
+        columnIds:
+          - signups
+  pages:
+    - id: churned
+      name: Churned Accounts
+      elements:
+        - churned_status
+        - churned_date
+        - plan_filter
+        - churned_kpi
+        - churned_reason
+        - churned_accounts
+    - id: at_risk
+      name: At-Risk Accounts
+      elements:
+        - risk_status
+        - plan_filter
+        - risk_kpi
+        - risk_accounts
+    - id: healthy
+      name: Healthy Accounts
+      elements:
+        - healthy_status
+        - plan_filter
+        - healthy_kpi
+        - healthy_accounts
+    - id: data
+      name: Data
+      visibility: hidden
+      elements:
+        - accounts
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="churned">
+      <Element elementId="churned_status" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="churned_date" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="plan_filter" gridColumn="13 / 19" gridRow="1 / 3"/>
+      <Element elementId="churned_kpi" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="churned_reason" gridColumn="1 / 25" gridRow="7 / 16"/>
+      <Element elementId="churned_accounts" gridColumn="1 / 25" gridRow="16 / 28"/>
+      <Element elementId="signup_trend" gridColumn="1 / 25" gridRow="28 / 37"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="at_risk">
+      <Element elementId="risk_status" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="plan_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="risk_kpi" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="risk_accounts" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="healthy">
+      <Element elementId="healthy_status" gridColumn="1 / 7" gridRow="1 / 3"/>
+      <Element elementId="plan_filter" gridColumn="7 / 13" gridRow="1 / 3"/>
+      <Element elementId="healthy_kpi" gridColumn="1 / 25" gridRow="3 / 7"/>
+      <Element elementId="healthy_accounts" gridColumn="1 / 25" gridRow="7 / 19"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+    </Page>
+  settings:
+    theme:
+      preset: daylight
+      palette: meridian
