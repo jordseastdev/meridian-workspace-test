@@ -209,6 +209,9 @@ contents:
       yAxis:
         columnIds:
           - amount
+      color:
+        by: single
+        value: "#16a34a"
       orientation: horizontal
       limit: 10
     - id: freshness
