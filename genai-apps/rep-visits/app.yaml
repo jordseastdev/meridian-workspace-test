@@ -1,0 +1,7 @@
+genaiAppId: rep-visits
+name: Rep Visits
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: rep-visits-accounts
+  prompt: Create a phone-first app for sales reps to browse and search their accounts, view account details and log visits against an account. Visit logging should capture account, visit date, type (In person, Phone, Video), outcome, and next step. Show recent visit history per account and make it easy to add a visit from the account screen.
