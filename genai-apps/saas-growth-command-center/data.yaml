@@ -158,6 +158,208 @@ contents:
         - id: status
           name: Invoice Status
           formula: "[Invoice Status]"
+    - id: account_followups
+      name: Account follow-ups
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: accounts
+        connectionId: default
+      columns:
+        - id: account_id
+          name: Account ID
+          key: account_id
+        - id: outreach_status
+          name: Outreach status
+          type: text
+          values:
+            - Not started
+            - Contacted
+            - In progress
+            - Complete
+        - id: next_step
+          name: Next step
+          type: text
+          multiline: true
+        - id: follow_up_date
+          name: Follow-up date
+          type: date
+        - id: notes
+          name: Notes
+          type: text
+          multiline: true
+    - id: invoice_collection_notes
+      name: Invoice collection notes
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: note_id
+          name: Note ID
+          type: text
+          default:
+            kind: id
+            prefix: NOTE-
+          required: true
+        - id: invoice_id
+          name: Invoice ID
+          type: text
+          required: true
+        - id: collection_status
+          name: Collection status
+          type: text
+          values:
+            - Follow-up needed
+            - Contacted
+            - Promise to pay
+            - Resolved
+            - Written off
+        - id: note
+          name: Note
+          type: text
+          multiline: true
+          required: true
+        - id: created_by
+          name: Created by
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: created_at
+          name: Created at
+          type: datetime
+          default:
+            kind: now
+          readOnly: true
+    - id: adoption_followups
+      name: Feature adoption follow-ups
+      kind: input-table
+      inputMode: append
+      source:
+        kind: empty
+        connectionId: default
+      columns:
+        - id: followup_id
+          name: Follow-up ID
+          type: text
+          default:
+            kind: id
+            prefix: ADOPT-
+          required: true
+        - id: account_id
+          name: Account ID
+          type: text
+          required: true
+        - id: feature
+          name: Feature
+          type: text
+          required: true
+        - id: followup_status
+          name: Follow-up status
+          type: text
+          values:
+            - Not started
+            - Contacted
+            - In progress
+            - Complete
+        - id: next_step
+          name: Next step
+          type: text
+          multiline: true
+        - id: follow_up_date
+          name: Follow-up date
+          type: date
+        - id: note
+          name: Note
+          type: text
+          multiline: true
+        - id: created_by
+          name: Created by
+          type: text
+          default:
+            kind: user
+          readOnly: true
+        - id: created_at
+          name: Created at
+          type: datetime
+          default:
+            kind: now
+          readOnly: true
+    - id: account_index
+      name: Accounts for follow-ups
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: accounts
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: account_name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: status
+          name: Account Status
+          formula: "[Account Status]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: account_owner
+          name: Account Owner
+          formula: "[Account Owner]"
+    - id: invoice_index
+      name: Invoices for collection
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: invoices
+      columns:
+        - id: invoice_id
+          name: Invoice ID
+          formula: "[Invoice ID]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: invoice_date
+          name: Invoice Date
+          formula: "[Invoice Date]"
+        - id: due_date
+          name: Due Date
+          formula: "[Due Date]"
+        - id: invoice_total
+          name: Invoice Total
+          formula: "[Invoice Total]"
+        - id: status
+          name: Invoice Status
+          formula: "[Invoice Status]"
+    - id: adoption_index
+      name: Feature adoption for follow-ups
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: feature_adoption
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: feature
+          name: Feature
+          formula: "[Feature]"
+        - id: adopted
+          name: Adopted
+          formula: "[Adopted]"
+        - id: last_used_date
+          name: Last Used Date
+          formula: "[Last Used Date]"
+        - id: monthly_active_users
+          name: Monthly Active Users
+          formula: "[Monthly Active Users]"
   pages:
     - id: data
       name: Data
@@ -168,6 +370,16 @@ contents:
         - mrr_movements
         - feature_adoption
         - invoices
+        - account_index
+        - invoice_index
+        - adoption_index
+    - id: interaction_data
+      name: Interaction data
+      visibility: hidden
+      elements:
+        - account_followups
+        - invoice_collection_notes
+        - adoption_followups
   layout: |
     <?xml version="1.0" encoding="utf-8"?>
     <!-- generated by Meridian from pages[].elements -->
@@ -177,4 +389,12 @@ contents:
       <Element elementId="mrr_movements" gridColumn="1 / 25" gridRow="25 / 37"/>
       <Element elementId="feature_adoption" gridColumn="1 / 25" gridRow="37 / 49"/>
       <Element elementId="invoices" gridColumn="1 / 25" gridRow="49 / 61"/>
+      <Element elementId="account_index" gridColumn="1 / 25" gridRow="61 / 73"/>
+      <Element elementId="invoice_index" gridColumn="1 / 25" gridRow="73 / 85"/>
+      <Element elementId="adoption_index" gridColumn="1 / 25" gridRow="85 / 97"/>
+    </Page>
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="interaction_data">
+      <Element elementId="account_followups" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="invoice_collection_notes" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="adoption_followups" gridColumn="1 / 25" gridRow="25 / 37"/>
     </Page>

@@ -5,14 +5,16 @@ import { DonutChart } from "@meridian/ui";
 const limit = 50;
 export function Accounts({ search, overview = false }: { search: string; overview?: boolean }) {
   const [status, setStatus] = useState("");
+  const [sortColumn, setSortColumn] = useState<"signup_date" | "account_name" | "status">("signup_date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const filters = status ? [{ column: "status" as const, values: [status] }] : [];
-  const list = useRows("accounts", { search, filters, sort: [{ column: "signup_date", direction: "desc" }], limit });
+  const list = useRows("accounts", { search, filters, sort: [{ column: sortColumn, direction: sortDirection }], limit });
   const groups = useRows("accounts", { search, filters, groupBy: "status" });
   const title = overview ? "Account acquisition & retention" : "Account records";
 
   return <section className={`card ${overview ? "overview-panel" : "content-panel"}`}>
     <div className="section-title"><div><h2>{title}</h2><p>Signup history alongside current account status and ownership.</p></div>
-      {!overview && <select aria-label="Filter by account status" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">All statuses</option><option>Active</option><option>Free</option><option>Churned</option></select>}
+      {!overview && <div className="table-controls"><select aria-label="Filter by account status" value={status} onChange={(e) => setStatus(e.target.value)}><option value="">All statuses</option><option>Active</option><option>Free</option><option>Churned</option></select><select aria-label="Sort accounts by" value={sortColumn} onChange={(e) => setSortColumn(e.target.value as typeof sortColumn)}><option value="signup_date">Signup date</option><option value="account_name">Account name</option><option value="status">Status</option></select><button className="sort-toggle" aria-label={`Sort ${sortDirection === "desc" ? "ascending" : "descending"}`} onClick={() => setSortDirection(sortDirection === "desc" ? "asc" : "desc")}>{sortDirection === "desc" ? "Newest first" : "Oldest first"}</button></div>}
     </div>
     {!overview && <div className="chart-wrap compact-chart"><DonutChart data={groups.rows} label="status" value="count" centerLabel="Accounts" legend="right" loading={groups.loading} /></div>}
     {list.error ? <div className="error-state">Could not load account records. Try again.</div> : list.loading ? <div className="skeleton table-skeleton" aria-label="Loading accounts" /> :

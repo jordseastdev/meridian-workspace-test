@@ -1,13 +1,15 @@
+import { useState } from "react";
 import { useRows } from "@meridian/app";
 import { BarChart } from "@meridian/ui";
 
 export function Revenue({ search, overview = false }: { search: string; overview?: boolean }) {
-  const filters = [];
-  const movement = useRows("mrr_movements", { search, sort: [{ column: "month", direction: "desc" }], limit: 50 });
+  const [sortColumn, setSortColumn] = useState<"month" | "movement_type" | "mrr_change">("month");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const movement = useRows("mrr_movements", { search, sort: [{ column: sortColumn, direction: sortDirection }], limit: 50 });
   const grouped = useRows("mrr_movements", { search, groupBy: "movement_type" });
   const monthly = useRows("monthly_mrr", { search, sort: [{ column: "month", direction: "desc" }], limit: 12 });
   return <section className={`card ${overview ? "overview-panel" : "content-panel"}`}>
-    <div className="section-title"><div><h2>{overview ? "Recurring revenue movements" : "MRR movements"}</h2><p>Recorded changes in monthly recurring revenue by movement type.</p></div></div>
+    <div className="section-title"><div><h2>{overview ? "Recurring revenue movements" : "MRR movements"}</h2><p>Recorded changes in monthly recurring revenue by movement type.</p></div>{!overview && <div className="table-controls"><select aria-label="Sort movements by" value={sortColumn} onChange={(e) => setSortColumn(e.target.value as typeof sortColumn)}><option value="month">Month</option><option value="movement_type">Movement type</option><option value="mrr_change">MRR change</option></select><button className="sort-toggle" onClick={() => setSortDirection(sortDirection === "desc" ? "asc" : "desc")}>{sortDirection === "desc" ? "Descending" : "Ascending"}</button></div>}</div>
     {!overview && <div className="chart-wrap"><BarChart data={grouped.rows} x="movement_type" y="count" title="Movement records by type" legend="none" rounded loading={grouped.loading} /></div>}
     {movement.error || monthly.error ? <div className="error-state">Could not load revenue records. Try again.</div> : movement.loading ? <div className="skeleton table-skeleton" aria-label="Loading revenue records" /> :
       movement.rows.length === 0 ? <div className="empty-state">{search ? "No revenue records match this search." : "No revenue records are available."}</div> :
