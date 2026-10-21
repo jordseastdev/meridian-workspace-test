@@ -1,0 +1,7 @@
+genaiAppId: saas-growth-command-center
+name: SaaS Growth Command Center
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: saas-growth-command-center-3
+  prompt: Build a polished SaaS Growth Command Center to explore account acquisition and conversion, monthly recurring revenue and MRR movements, feature adoption, and invoice collection. Include useful filters and clear trend views, account-level retention context (status, current plan, region, owner, churn reason), and billing status details. Use only the provided workbook data. Clearly label this as historical/observational analytics; do not imply predictive churn or renewal risk, since the data has no renewal dates or risk score.
