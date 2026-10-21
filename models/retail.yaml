@@ -1625,3 +1625,14 @@ contents:
         - Order Count
       verifiedBy: priya@meridian.dev
       verifiedAt: 2026-10-06
+    - question: How are net revenue, order volume, and gross margin trending by month and sales channel?
+      elementId: orders
+      dimensions:
+        - DateTrunc("month", [Order Date])
+        - "[Channel]"
+      measures:
+        - Total Revenue
+        - Order Count
+        - Gross Margin
+      verifiedBy: demo@meridian.local
+      verifiedAt: 2026-10-20
