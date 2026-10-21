@@ -1,0 +1,7 @@
+genaiAppId: account-action-hub
+name: Account Action Hub
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  workbookId: account-action-center
+  prompt: Create an excellent, interactive account revenue action center for customer success and account owners. List accounts with searchable/filterable account name, action lane, region, owner, plan, active MRR, past-due balance, first renewal date, feature adoption counts and last feature use. Prioritize overdue balances and low adoption. Let users update each account's next step, follow-up date, and follow-up status, linked to the account. Include clear prioritization, attractive responsive layout, and useful account details. Use only the workbook's account signals and follow-up fields; do not invent churn scores or risk predictions.
