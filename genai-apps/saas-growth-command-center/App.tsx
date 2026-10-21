@@ -5,9 +5,10 @@ import { Revenue } from "./Revenue";
 import { Adoption } from "./Adoption";
 import { Billing } from "./Billing";
 import { Followups } from "./Followups";
+import { MyWork } from "./MyWork";
 import "./styles.css";
 
-type View = "overview" | "accounts" | "revenue" | "adoption" | "billing" | "followups";
+type View = "overview" | "accounts" | "revenue" | "adoption" | "billing" | "followups" | "my-work";
 
 const nav: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const nav: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "adoption", label: "Feature adoption", icon: Layers3 },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "followups", label: "Follow-ups", icon: Activity },
+  { id: "my-work", label: "My work", icon: Users },
 ];
 
 export default function App() {
@@ -84,6 +86,7 @@ export default function App() {
           {view === "adoption" && <Adoption search={search} />}
           {view === "billing" && <Billing search={search} />}
           {view === "followups" && <Followups search={search} />}
+          {view === "my-work" && <MyWork search={search} />}
         </div>
       </main>
     </div>

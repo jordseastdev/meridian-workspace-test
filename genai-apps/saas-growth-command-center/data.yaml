@@ -170,6 +170,9 @@ contents:
         - id: account_id
           name: Account ID
           key: account_id
+        - id: assigned_to
+          name: Assigned to
+          type: text
         - id: outreach_status
           name: Outreach status
           type: text
