@@ -35,7 +35,7 @@ contents:
           kind: formula
           formula: '[Status] = "Active"'
     - id: account_work
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

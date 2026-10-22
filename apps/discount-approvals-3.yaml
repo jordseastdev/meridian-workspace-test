@@ -51,7 +51,7 @@ contents:
             decimals: 0
     - id: review
       name: Deal Decisions
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

@@ -232,7 +232,7 @@ contents:
           formula: CountDistinct([Account ID])
     - id: work
       name: Account execution records
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

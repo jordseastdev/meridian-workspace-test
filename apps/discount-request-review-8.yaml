@@ -6,7 +6,7 @@ contents:
   kind: workbook
   elements:
     - id: deals_base
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

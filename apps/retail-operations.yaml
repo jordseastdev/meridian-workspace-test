@@ -224,7 +224,7 @@ contents:
           direction: descending
     - id: order_notes
       name: Manager order notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

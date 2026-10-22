@@ -25,7 +25,7 @@ contents:
     - london-germany-trip-planner
   tools:
     - read-data
-    - write-input-tables
+    - write-sheets
   approval: confirm-writes
   maxSteps: 12
   greeting: Hi! Tell me which activity you missed or want to move, and I’ll find the safest slot based on the itinerary, travel constraints, and confirmed opening hours.

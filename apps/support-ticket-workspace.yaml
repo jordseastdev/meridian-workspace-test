@@ -45,7 +45,7 @@ contents:
           formula: "[Support Tickets/CSAT Score]"
     - id: ticket_updates
       name: Ticket updates
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

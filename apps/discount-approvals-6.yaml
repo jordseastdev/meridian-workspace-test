@@ -49,7 +49,7 @@ contents:
       visibleAsSource: true
     - id: review
       name: Review decisions
-      kind: input-table
+      kind: sheet
       actions:
         - id: open_details
           trigger: on-select

@@ -67,7 +67,7 @@ contents:
           direction: ascending
     - id: account_work
       name: Account Management Updates
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

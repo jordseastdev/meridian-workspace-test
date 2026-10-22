@@ -51,7 +51,7 @@ contents:
           formula: "[Deals/Age Days]"
     - id: approval_input
       name: Approval decisions
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

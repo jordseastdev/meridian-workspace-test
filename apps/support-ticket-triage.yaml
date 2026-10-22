@@ -77,7 +77,7 @@ contents:
       icon: sparkles
     - id: open_tickets
       name: Open Tickets
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

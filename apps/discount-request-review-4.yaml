@@ -107,7 +107,7 @@ contents:
       limit: 200
     - id: decision_panel
       name: Decision Notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

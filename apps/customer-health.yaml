@@ -220,7 +220,7 @@ contents:
     - id: notes
       name: CSM outreach
       description: One row per customer; CSMs edit status and notes, which are written to the warehouse with an edit log.
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

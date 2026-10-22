@@ -223,7 +223,7 @@ contents:
       icon: sparkles
     - id: reschedule-workspace
       name: Reschedule Workspace
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

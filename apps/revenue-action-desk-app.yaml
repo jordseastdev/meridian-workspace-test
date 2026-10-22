@@ -97,7 +97,7 @@ contents:
           formula: "[Next Open Deal Close]"
     - id: account_work
       name: Account Action Plans
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked
@@ -134,7 +134,7 @@ contents:
           type: date
     - id: outcomes
       name: Action and Outcome Log
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

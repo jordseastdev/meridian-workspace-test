@@ -238,7 +238,7 @@ contents:
             decimals: 1
     - id: followups
       name: Account Follow-ups
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

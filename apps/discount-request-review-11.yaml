@@ -125,7 +125,7 @@ contents:
       limit: 500
     - id: review_form
       name: Decision notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

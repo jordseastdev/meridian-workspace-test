@@ -40,7 +40,7 @@ contents:
       limit: 500
     - id: order_followups
       name: Order follow-up flags
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

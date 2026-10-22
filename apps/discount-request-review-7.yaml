@@ -82,7 +82,7 @@ contents:
     - id: decision_panel
       name: Decision and Note
       description: Record a manager's approval or rejection and explain the decision.
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

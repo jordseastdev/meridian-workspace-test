@@ -47,7 +47,7 @@ contents:
       visibleAsSource: true
     - id: decisions
       name: Deal Decisions
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

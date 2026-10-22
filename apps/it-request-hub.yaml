@@ -7,7 +7,7 @@ contents:
   elements:
     - id: request_data
       name: IT Requests
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

@@ -38,7 +38,7 @@ contents:
           formula: "[Support Tickets/Ticket Status]"
       visibleAsSource: true
     - id: ticket_work
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

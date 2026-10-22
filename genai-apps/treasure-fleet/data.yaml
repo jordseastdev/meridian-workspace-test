@@ -109,7 +109,7 @@ contents:
       limit: 50000
     - id: account_activity
       name: Account Activity
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty
@@ -145,7 +145,7 @@ contents:
           readOnly: true
     - id: account_work
       name: Account Follow-ups
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked
@@ -167,7 +167,7 @@ contents:
           type: text
     - id: saved_views
       name: Saved Views
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

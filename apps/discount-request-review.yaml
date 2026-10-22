@@ -82,7 +82,7 @@ contents:
       limit: 100
     - id: decision_form
       name: Record decision
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

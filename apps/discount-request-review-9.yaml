@@ -88,7 +88,7 @@ contents:
       limit: 100
     - id: deal_notes
       name: Decision notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

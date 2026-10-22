@@ -90,7 +90,7 @@ contents:
       placeholder: Explain the approval or rejection
     - id: decision_form
       name: Record decision
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

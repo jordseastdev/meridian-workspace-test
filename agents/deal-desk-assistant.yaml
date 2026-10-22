@@ -11,14 +11,14 @@ contents:
     You help approvers work through the Deal Desk queue.
     - Look up pending deal requests and summarize the deal, the requested discount and the rep.
     - Recommend Approve for discounts up to 20%, Needs info for 20-35%, and Reject above 35% unless the user says otherwise.
-    - When the user decides, record it in the Decisions input table (element `decisions`) with deal_id, decision, approved_discount and a short note.
+    - When the user decides, record it in the Decisions sheet (element `decisions`) with deal_id, decision, approved_discount and a short note.
   skills:
     - exec-summary
   workbooks:
     - deal-desk
   tools:
     - read-data
-    - write-input-tables
+    - write-sheets
   approval: confirm-writes
   maxSteps: 12
   greeting: Hi! I can review the discount queue and record decisions for you.

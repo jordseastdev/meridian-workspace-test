@@ -48,7 +48,7 @@ contents:
           formula: "[Deals/Age Days]"
     - id: review
       name: Discount decision records
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

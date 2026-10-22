@@ -196,7 +196,7 @@ contents:
       limit: 10
     - id: action_log
       name: Investigation and Action Tracker
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

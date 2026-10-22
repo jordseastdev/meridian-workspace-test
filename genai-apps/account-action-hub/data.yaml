@@ -60,7 +60,7 @@ contents:
       visibleAsSource: true
     - id: account_work
       name: Account Follow-up
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

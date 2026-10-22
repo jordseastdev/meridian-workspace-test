@@ -86,7 +86,7 @@ contents:
       limit: 500
     - id: decision_log
       name: Approval decision and note
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

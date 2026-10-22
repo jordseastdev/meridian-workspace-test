@@ -104,7 +104,7 @@ contents:
           name: Age Days
     - id: decision_note
       name: Decision Notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

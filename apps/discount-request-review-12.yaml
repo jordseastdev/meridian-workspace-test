@@ -108,7 +108,7 @@ contents:
           direction: descending
     - id: decision
       name: Decision notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

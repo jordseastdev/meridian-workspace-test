@@ -14,7 +14,7 @@ contents:
     - retail-performance-action-hub
   tools:
     - read-data
-    - write-input-tables
+    - write-sheets
   approval: confirm-writes
   maxSteps: 12
   greeting: I can interpret performance and help record investigations in the action tracker. I’ll ask before saving.

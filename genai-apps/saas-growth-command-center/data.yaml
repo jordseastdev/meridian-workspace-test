@@ -160,7 +160,7 @@ contents:
           formula: "[Invoice Status]"
     - id: account_followups
       name: Account follow-ups
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked
@@ -194,7 +194,7 @@ contents:
           multiline: true
     - id: invoice_collection_notes
       name: Invoice collection notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty
@@ -239,7 +239,7 @@ contents:
           readOnly: true
     - id: adoption_followups
       name: Feature adoption follow-ups
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

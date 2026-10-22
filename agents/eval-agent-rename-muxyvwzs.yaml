@@ -18,7 +18,7 @@ contents:
     - deal-desk
   tools:
     - read-data
-    - write-input-tables
+    - write-sheets
   approval: confirm-writes
   maxSteps: 12
   greeting: Hi! I can review the discount queue and record decisions for you.

@@ -99,7 +99,7 @@ contents:
           formula: "[Age Days]"
     - id: decision
       name: Decision Notes
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

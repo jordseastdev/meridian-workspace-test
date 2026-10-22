@@ -51,7 +51,7 @@ contents:
       limit: 5000
     - id: visits
       name: Visit Log
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

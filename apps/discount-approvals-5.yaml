@@ -86,7 +86,7 @@ contents:
       icon: sparkles
     - id: deal_cards
       name: Pending Discount Requests
-      kind: input-table
+      kind: sheet
       actions:
         - id: show_deal
           trigger: on-select
@@ -212,7 +212,7 @@ contents:
           - age_days
           - note
     - id: decisions
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

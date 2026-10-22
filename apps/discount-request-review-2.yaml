@@ -85,7 +85,7 @@ contents:
     - id: review_note
       name: Recorded Decisions
       description: Append-only record of a manager decision and its note for a discount request.
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

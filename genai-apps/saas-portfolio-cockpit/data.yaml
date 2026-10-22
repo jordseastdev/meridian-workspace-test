@@ -78,7 +78,7 @@ contents:
       visibleAsSource: true
     - id: account_work
       name: Account follow-up
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked
@@ -100,7 +100,7 @@ contents:
           type: text
     - id: notes
       name: Account notes history
-      kind: input-table
+      kind: sheet
       inputMode: append
       source:
         kind: empty

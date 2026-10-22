@@ -109,7 +109,7 @@ contents:
         columnId: count
     - id: request_cards
       name: Pending discount requests
-      kind: input-table
+      kind: sheet
       actions:
         - id: show_details
           trigger: on-select

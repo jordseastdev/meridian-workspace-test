@@ -45,7 +45,7 @@ contents:
             decimals: 0
     - id: decisions
       name: Approval Decisions
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty

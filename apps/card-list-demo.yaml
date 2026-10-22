@@ -29,7 +29,7 @@ contents:
             decimals: 0
     - id: review
       name: Approve discounts
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: linked

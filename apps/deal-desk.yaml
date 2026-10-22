@@ -148,7 +148,7 @@ contents:
     - id: decisions
       name: Decisions
       description: Approver decisions, written back to the warehouse with a full edit log.
-      kind: input-table
+      kind: sheet
       inputMode: edit
       source:
         kind: empty
