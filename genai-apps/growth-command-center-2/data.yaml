@@ -1,0 +1,290 @@
+workbookId: growth-command-data-3
+name: Growth Command Center Data
+tags:
+  - genai-data
+contents:
+  schemaVersion: 1
+  kind: workbook
+  elements:
+    - id: accounts
+      name: Accounts
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: accounts
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: name
+          name: Account Name
+          formula: "[Account Name]"
+        - id: status
+          name: Account Status
+          formula: "[Account Status]"
+        - id: plan
+          name: Current Plan
+          formula: "[Current Plan]"
+        - id: owner
+          name: Account Owner
+          formula: "[Account Owner]"
+        - id: csm
+          name: Customer Success Manager
+          formula: "[Customer Success Manager]"
+        - id: region
+          name: Region
+          formula: "[Region]"
+        - id: industry
+          name: Industry
+          formula: "[Industry]"
+        - id: channel
+          name: Acquisition Source
+          formula: "[Acquisition Source]"
+        - id: signup
+          name: Signup Date
+          formula: "[Signup Date]"
+        - id: converted
+          name: Converted Date
+          formula: "[Converted Date]"
+        - id: churned
+          name: Churned Date
+          formula: "[Churned Date]"
+        - id: churn_reason
+          name: Churn Reason
+          formula: "[Churn Reason]"
+        - id: total_accounts
+          name: Total Accounts
+          formula: "[Total Accounts]"
+          format:
+            kind: number
+            decimals: 0
+        - id: active_accounts
+          name: Active Accounts
+          formula: "[Active Accounts]"
+          format:
+            kind: number
+            decimals: 0
+        - id: churned_accounts
+          name: Churned Accounts
+          formula: "[Churned Accounts]"
+          format:
+            kind: number
+            decimals: 0
+    - id: revenue
+      name: Monthly Revenue Snapshots
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: mrr_monthly
+      columns:
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: plan
+          name: Plan Name
+          formula: "[Plan Name]"
+        - id: mrr
+          name: MRR
+          formula: "[MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: seats
+          name: Seats
+          formula: "[Seats]"
+        - id: total_mrr
+          name: Total MRR
+          formula: "[Total MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: total_arr
+          name: Total ARR
+          formula: "[Total ARR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: paying_accounts
+          name: Recurring Revenue Accounts
+          formula: "[Recurring Revenue Accounts]"
+          format:
+            kind: number
+            decimals: 0
+        - id: arpa
+          name: Average Revenue per Account
+          formula: "[Average Revenue per Account]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: total_seats
+          name: Total Seats
+          formula: "[Total Seats]"
+          format:
+            kind: number
+            decimals: 0
+    - id: movements
+      name: Revenue Movements
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: mrr_movements
+      columns:
+        - id: movement_id
+          name: Movement ID
+          formula: "[Movement ID]"
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: month
+          name: Month
+          formula: "[Month]"
+        - id: type
+          name: Movement Type
+          formula: "[Movement Type]"
+        - id: change
+          name: MRR Change
+          formula: "[MRR Change]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: net
+          name: Net MRR Change
+          formula: "[Net MRR Change]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: new
+          name: New MRR
+          formula: "[New MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: expansion
+          name: Expansion MRR
+          formula: "[Expansion MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: upgrade
+          name: Upgrade MRR
+          formula: "[Upgrade MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: contraction
+          name: Contraction MRR
+          formula: "[Contraction MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: downgrade
+          name: Downgrade MRR
+          formula: "[Downgrade MRR]"
+          format:
+            kind: currency
+            decimals: 0
+        - id: churn
+          name: Churned MRR
+          formula: "[Churned MRR]"
+          format:
+            kind: currency
+            decimals: 0
+    - id: adoption
+      name: Feature Adoption
+      kind: table
+      source:
+        kind: data-model
+        dataModelId: saas-growth
+        elementId: feature_adoption
+      columns:
+        - id: account_id
+          name: Account ID
+          formula: "[Account ID]"
+        - id: feature
+          name: Feature
+          formula: "[Feature]"
+        - id: category
+          name: Feature Category
+          formula: "[Feature Category]"
+        - id: adopted
+          name: Adopted
+          formula: "[Adopted]"
+        - id: mau
+          name: Monthly Active Users
+          formula: "[Monthly Active Users]"
+        - id: pairs
+          name: Account-Feature Pairs
+          formula: "[Account-Feature Pairs]"
+          format:
+            kind: number
+            decimals: 0
+        - id: adopted_pairs
+          name: Adopted Account-Feature Pairs
+          formula: "[Adopted Account-Feature Pairs]"
+          format:
+            kind: number
+            decimals: 0
+        - id: adoption_rate
+          name: Adoption Rate
+          formula: SafeDivide(CountIf([Adopted] = true), Count())
+          format:
+            kind: percent
+            decimals: 1
+    - id: followups
+      name: Account Follow-ups
+      kind: input-table
+      inputMode: edit
+      source:
+        kind: linked
+        from: accounts
+        connectionId: default
+      columns:
+        - id: account_id
+          name: Account ID
+          key: account_id
+        - id: next_step
+          name: Next Step
+          type: text
+          multiline: true
+        - id: follow_up_date
+          name: Follow-up Date
+          type: date
+        - id: work_status
+          name: Follow-up Status
+          type: text
+          values:
+            - Not started
+            - In progress
+            - Done
+        - id: priority
+          name: Priority
+          type: text
+          values:
+            - Low
+            - Medium
+            - High
+  pages:
+    - id: data
+      name: Data
+      elements:
+        - accounts
+        - revenue
+        - movements
+        - adoption
+        - followups
+  layout: |
+    <?xml version="1.0" encoding="utf-8"?>
+    <!-- generated by Meridian from pages[].elements -->
+    <Page type="grid" gridTemplateColumns="repeat(24, 1fr)" gridTemplateRows="auto" id="data">
+      <Element elementId="accounts" gridColumn="1 / 25" gridRow="1 / 13"/>
+      <Element elementId="revenue" gridColumn="1 / 25" gridRow="13 / 25"/>
+      <Element elementId="movements" gridColumn="1 / 25" gridRow="25 / 37"/>
+      <Element elementId="adoption" gridColumn="1 / 25" gridRow="37 / 49"/>
+      <Element elementId="followups" gridColumn="1 / 25" gridRow="49 / 61"/>
+    </Page>
