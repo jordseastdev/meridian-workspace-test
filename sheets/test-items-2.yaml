@@ -1,0 +1,19 @@
+sheetId: test-items-2
+name: Test items
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: empty
+    connectionId: default
+  columns:
+    - id: item
+      name: Item
+      type: text
+    - id: quantity
+      name: Quantity
+      type: number
+  storage:
+    workbookId: pr130-test-mobile-d19
+    elementId: items
