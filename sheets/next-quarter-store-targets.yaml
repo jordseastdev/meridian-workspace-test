@@ -1,0 +1,29 @@
+sheetId: next-quarter-store-targets
+name: Next-quarter store targets
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: empty
+  columns:
+    - id: store_id
+      name: Store ID
+      type: text
+      required: true
+    - id: store_name
+      name: Store
+      type: text
+      required: true
+    - id: target_quarter
+      name: Target Quarter
+      type: text
+      default:
+        kind: constant
+        value: 2026 Q4
+      required: true
+    - id: target_amount
+      name: Target Amount
+      type: number
+      required: true
+  app: store-targets-planner
