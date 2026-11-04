@@ -1,0 +1,47 @@
+genaiAppId: renewal-call-form
+name: Renewal call form
+contents:
+  schemaVersion: 1
+  kind: genai-app
+  data:
+    accounts:
+      model: saas
+      table: accounts
+      columns:
+        - account_id
+        - account_name
+        - current_plan
+        - status
+        - account_owner
+    subs:
+      model: saas
+      table: subscriptions
+      columns:
+        - subscription_id
+        - account_id
+        - plan_name
+        - status
+        - first_renewal_date
+        - current_mrr
+      filters:
+        - column: status
+          values:
+            - Active
+    tickets:
+      model: saas
+      table: support_tickets
+      columns:
+        - ticket_id
+        - account_id
+        - created_date
+        - category
+        - priority
+        - status
+      summaries:
+        ticket_count: CountDistinct([Ticket ID])
+    calls:
+      sheet: renewal-call-log
+  prompt: |-
+    Build a polished, step-by-step renewal call workflow for account managers. Step 1 lets the user select one active account with an upcoming first renewal (the available renewal dates in subscriptions are historical through 2026-09-01, so make the default selection show active subscriptions with a first renewal date between 2025-09-01 and 2026-09-01 and state that these are the latest available renewal dates). Show account name, plan, current MRR and the account's recent support tickets for the selected account. Step 2 captures call outcome (Renewing, At risk, Churning), main concern, and next step date. Step 3 shows a review and submit confirmation. On submit, append a renewal-call record to the linked sheet; store account ID, account manager, call date, outcome, main concern and next step date. Also show the latest saved call outcome for the selected account. Allow the account manager to see call records and, on a later call, the newest outcome. Don't imply the warehouse account row itself is modified; last call outcome is derived from the saved call log. Include loading, empty and error states and responsive layout. Use actual model fields and server reads; do not invent renewal dates or metrics.
+
+    The sections, top to bottom, as sketched for the user (name each one's component after it): Step 1 · Pick an account, Plan, MRR and recent support tickets, Step 2 · Call outcome, Main concern, Next step date, Step 3 · Review and submit, Last call outcome.
