@@ -1,0 +1,28 @@
+sheetId: account-check-ins
+name: Account Check-ins
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: append
+  source:
+    kind: empty
+  columns:
+    - id: checkin_id
+      name: Check-in ID
+      type: text
+      default:
+        kind: id
+        prefix: CHK-
+    - id: account_id
+      name: Account ID
+      type: text
+      required: true
+    - id: checkin_date
+      name: Check-in Date
+      type: date
+      required: true
+    - id: notes
+      name: Notes
+      type: text
+      required: true
+  app: account-health
