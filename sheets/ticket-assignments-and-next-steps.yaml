@@ -1,0 +1,23 @@
+sheetId: ticket-assignments-and-next-steps
+name: Ticket assignments and next steps
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: linked
+    dataModelId: saas
+    table: support_tickets
+  columns:
+    - id: ticket_id
+      name: Ticket ID
+      type: text
+      key: ticket_id
+      required: true
+    - id: agent
+      name: Assigned Agent
+      type: text
+    - id: next_step
+      name: Next Step
+      type: text
+  app: support-ticket-triage-2
