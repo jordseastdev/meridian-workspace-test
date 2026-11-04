@@ -1,0 +1,41 @@
+sheetId: account-check-ins-2
+name: Account Check-ins
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: append
+  source:
+    kind: empty
+  columns:
+    - id: checkin_id
+      name: Check-in ID
+      type: text
+      default:
+        kind: id
+        prefix: CHK-
+      required: true
+    - id: account_id
+      name: Account ID
+      type: text
+      required: true
+    - id: checkin_date
+      name: Check-in Date
+      type: date
+      default:
+        kind: today
+      required: true
+    - id: owner
+      name: Owner / CSM
+      type: text
+      default:
+        kind: user
+      required: true
+    - id: notes
+      name: Notes
+      type: text
+      required: true
+    - id: next_step
+      name: Next Step
+      type: text
+      required: true
+  app: account-health-2
