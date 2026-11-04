@@ -1,0 +1,22 @@
+sheetId: ticket-triage-assignments
+name: Ticket triage assignments
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: linked
+    dataModelId: saas
+    table: support_tickets
+  columns:
+    - id: ticket_id
+      name: Ticket ID
+      type: text
+      key: ticket_id
+    - id: assignee
+      name: Assigned to
+      type: text
+    - id: next_step
+      name: Next step
+      type: text
+  app: support-ticket-triage-3
