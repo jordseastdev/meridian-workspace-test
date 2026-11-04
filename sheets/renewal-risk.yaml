@@ -1,0 +1,26 @@
+sheetId: renewal-risk
+name: Renewal risk
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: linked
+    dataModelId: saas
+    table: subscriptions
+  columns:
+    - id: subscription_id
+      name: Subscription ID
+      type: text
+      key: subscription_id
+      required: true
+    - id: at_risk
+      name: At Risk
+      type: checkbox
+      default:
+        kind: constant
+        value: false
+    - id: note
+      name: Risk Note
+      type: text
+  app: renewal-board-2
