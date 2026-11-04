@@ -1,0 +1,31 @@
+sheetId: ticket-triage-notes
+name: Ticket triage notes
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: linked
+    dataModelId: saas
+    table: support_tickets
+  columns:
+    - id: ticket_id
+      name: Ticket ID
+      type: text
+      key: ticket_id
+    - id: owner
+      name: Triage Owner
+      type: text
+    - id: triage_status
+      name: Triage Status
+      type: text
+      values:
+        - New
+        - Investigating
+        - Waiting on customer
+        - Done
+      required: true
+    - id: note
+      name: Note
+      type: text
+  app: support-ticket-triage
