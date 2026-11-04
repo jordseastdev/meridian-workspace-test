@@ -28,4 +28,5 @@ contents:
     - id: note
       name: Note
       type: text
+  shareAsTable: true
   app: support-ticket-triage
