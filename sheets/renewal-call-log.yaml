@@ -1,0 +1,49 @@
+sheetId: renewal-call-log
+name: Renewal Call Log
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: append
+  source:
+    kind: empty
+  columns:
+    - id: call_id
+      name: Call ID
+      type: text
+      default:
+        kind: id
+        prefix: CALL-
+      required: true
+    - id: account_id
+      name: Account ID
+      type: text
+      required: true
+    - id: account_manager
+      name: Account Manager
+      type: text
+      default:
+        kind: user
+      required: true
+    - id: call_date
+      name: Call Date
+      type: date
+      default:
+        kind: today
+      required: true
+    - id: outcome
+      name: Outcome
+      type: text
+      values:
+        - Renewing
+        - At risk
+        - Churning
+      required: true
+    - id: main_concern
+      name: Main Concern
+      type: text
+      required: true
+    - id: next_step_date
+      name: Next Step Date
+      type: date
+      required: true
+  app: renewal-call-form
