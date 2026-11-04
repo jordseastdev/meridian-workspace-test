@@ -1,0 +1,25 @@
+sheetId: ticket-triage-notes-2
+name: Ticket Triage Notes
+contents:
+  schemaVersion: 1
+  kind: sheet
+  inputMode: edit
+  source:
+    kind: linked
+    dataModelId: saas
+    table: support_tickets
+  columns:
+    - id: ticket_id
+      name: Ticket ID
+      type: text
+      key: ticket_id
+      required: true
+    - id: assigned_agent
+      name: Assigned Agent
+      type: text
+      required: true
+    - id: next_step
+      name: Next Step
+      type: text
+      required: true
+  app: support-ticket-triage-2
